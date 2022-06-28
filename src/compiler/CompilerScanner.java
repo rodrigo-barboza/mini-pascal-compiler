@@ -1,13 +1,12 @@
 package compiler;
+import java.io.File;
+import java.util.Scanner;
+import java.io.FileNotFoundException;
 
-public class Scanner {
+public class CompilerScanner  {
     private char currentChar;
     private byte currentKind;
     private StringBuffer currentSpelling;
-    
-    public Scanner (String source){
-//        this.currentChar = source[0];
-    }
     
     private void take(char expectedChar){
         if (currentChar == expectedChar){
@@ -98,9 +97,6 @@ public class Scanner {
                     takeIt();
                     return Token.BECOMES;
                 } else return Token.COLON;
-            case '~': 
-                takeIt();
-                return Token.IS;
             case '(': 
                 takeIt();
                 return Token.LPAREN;
@@ -141,6 +137,14 @@ public class Scanner {
                 takeIt();            
                 break;
         }
+    }
+    
+    public void nextSourceChar() throws FileNotFoundException {
+        File file = new File("C:\\Users\\Rodrigo\\Desktop\\teste.txt");
+        Scanner scan = new Scanner(file);
+        System.out.println(scan);
+        
+//      return current.charAt();
     }
     
     public Token scan(){
