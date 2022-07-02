@@ -1,17 +1,20 @@
 package compiler;
-import java.io.File;
-import java.util.Scanner;
-import java.io.FileNotFoundException;
 
 public class CompilerScanner  {
     private char currentChar;
     private byte currentKind;
+    private int currentLine = 0;
+    private int currentColumn = -1;
     private StringBuffer currentSpelling;
+    private String stringTeste = "integer a2c = 12;";
     
+    public CompilerScanner(){
+        nextSourceChar();
+    }
     private void take(char expectedChar){
         if (currentChar == expectedChar){
             currentSpelling.append(currentChar);
-            currentChar = 'p'; // next source char
+            nextSourceChar();
         } else {
             System.out.println("Erro Lexico");
         }
@@ -19,15 +22,20 @@ public class CompilerScanner  {
     
     private void takeIt(){
         currentSpelling.append(currentChar);
-        currentChar = '2'; // next source charactere
+        nextSourceChar(); // next source charactere
     }
     
+    private void nextSourceChar(){
+        if (currentColumn < stringTeste.length()-1){
+            currentChar = stringTeste.charAt(++currentColumn);
+        }
+    }
     private boolean isLetter(char charactere){
         return charactere >= 'a' && charactere <= 'z';
     }
     
     private boolean isDigit(char charactere){
-        return charactere >= 0 && charactere <= 9;
+        return charactere >= '0' && charactere <= '9';
     }
     
     private boolean isGraphic (char charactere){
@@ -36,27 +44,15 @@ public class CompilerScanner  {
     
     private byte scanToken (){
         switch(currentChar){
-            case 'a':
-                takeIt();
-                if (currentChar == 'n'){
-                    takeIt();
-                    if(currentChar == 'd'){
-                        takeIt();
-                        return Token.AND;
-                    }
-                }
-            case 'b':case 'c':case 'd':
-            case 'e':case 'f':case 'g':case 'h':
-            case 'i':case 'j':case 'k':case 'l':
-            case 'm':case 'n':case 'o':
-                takeIt();
-                if(currentChar == 'r'){
-                    takeIt();
-                    return Token.OR;
-                }
-            case 'p': case 'q':case 'r':case 's':
-            case 't': case 'u':case 'v':case 'w':
-            case 'x': case 'y':case 'z':
+            case 'a': case 'b': case 'c':
+            case 'd': case 'e': case 'f':
+            case 'g': case 'h': case 'i':
+            case 'j': case 'k': case 'l':
+            case 'm': case 'n': case 'o':
+            case 'p': case 'q': case 'r':
+            case 's': case 't': case 'u':
+            case 'v': case 'w': case 'x':
+            case 'y': case 'z':        
                 takeIt();
                 while(isLetter(currentChar) || isDigit(currentChar))
                     takeIt();
@@ -68,15 +64,16 @@ public class CompilerScanner  {
                 while(isDigit(currentChar))
                     takeIt();
                 return Token.INTLITERAL;
-            case '+':  return Token.SOMA;
-            case '-':  return Token.SUBTRACAO;
-            case '*':  return Token.MULTIPLICACAO;
-            case '/':  return Token.DIVISAO;
+                // falta botar takeIt antes de retornar
+            case '+':  takeIt(); return Token.SOMA;
+            case '-':  takeIt(); return Token.SUBTRACAO;
+            case '*':  takeIt(); return Token.MULTIPLICACAO;
+            case '/':  takeIt(); return Token.DIVISAO;
             case '<':
                 takeIt();
                 if (currentChar == '='){
                     takeIt();
-                    return Token.MENORIGUAL; // FALTA ADD NUMERAÇÃO
+                    return Token.MENORIGUAL;
                 } else if (currentChar == '>'){
                     return Token.DIFERENTE;
                 } else return Token.MENOR;
@@ -84,43 +81,25 @@ public class CompilerScanner  {
                 takeIt();
                 if (currentChar == '='){
                     takeIt();
-                    return Token.MAIORIGUAL; // FALTA ADD NUMERAÇÃO
+                    return Token.MAIORIGUAL;
                 } else return Token.MAIOR;
-            case '=':  return Token.IGUAL;
-            case '\\': return Token.BARRA;
-            case ';':  
-                takeIt();
-                return Token.SEMICOLON;
+            case '=': takeIt(); return Token.IGUAL;
+            case '\\': takeIt(); return Token.BARRA;
+            case ';':  takeIt(); return Token.SEMICOLON;
             case ':':
                 takeIt();
                 if (currentChar == '='){
                     takeIt();
                     return Token.BECOMES;
                 } else return Token.COLON;
-            case '(': 
-                takeIt();
-                return Token.LPAREN;
-            case ')': 
-                takeIt();
-                return Token.RPAREN;
-            case '!':
-                return Token.COMENTARIO; //FALTA ADD NUMERAÇÃO
-            case '@':
-                return Token.ARROBA; // FALTA ADD NUMERAÇÃO
-            case '#':
-                return Token.CERQUILHA; // FALTA ADD NUMERAÇÃO
-            case '.':
-                takeIt();
-                if (currentChar == '.')
-                {
-                    takeIt();
-                    if (currentChar == '.')
-                    {
-                        takeIt();
-                        return Token.TRES_PONTOS; 
-                    }
-                }
-            case '\000': return Token.EOF;
+            case '(': takeIt(); return Token.LPAREN;
+            case ')': takeIt(); return Token.RPAREN;
+            case '.': takeIt(); return Token.PONTO;
+            case ',': takeIt(); return Token.VIRGULA;
+            case '!': takeIt(); return Token.COMENTARIO; 
+            case '@': takeIt(); return Token.ARROBA; 
+            case '#': takeIt(); return Token.CERQUILHA;
+            case '\000': takeIt(); return Token.EOF;
             default: return Token.LEXICAL_ERROR;
         }
     }
@@ -139,20 +118,13 @@ public class CompilerScanner  {
         }
     }
     
-    public void nextSourceChar() throws FileNotFoundException {
-        File file = new File("C:\\Users\\Rodrigo\\Desktop\\teste.txt");
-        Scanner scan = new Scanner(file);
-        System.out.println(scan);
-        
-//      return current.charAt();
-    }
-    
     public Token scan(){
         while(currentChar == '!' || currentChar == ' ' || currentChar == '\n')
             scanSeparator();
         currentSpelling = new StringBuffer("");
         currentKind = scanToken();
-        return new Token(currentKind, currentSpelling.toString());
+        // retornar linha e coluna
+        return new Token(currentKind, currentSpelling.toString(), currentLine, currentColumn);
     }
     
 }
