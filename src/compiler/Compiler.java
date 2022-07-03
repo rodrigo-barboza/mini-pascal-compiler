@@ -1,14 +1,15 @@
 package compiler;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public class Compiler {
 
-    public static void main(String[] args) throws FileNotFoundException {
-        CompilerScanner teste = new CompilerScanner();
-        
-        for (int x = 0; x < 5; x++)
-            teste.scan();
+    public static void main(String[] args) throws IOException {
+        //Endereço do arquivo a ser lido:
+        Path testFile = Path.of("C:\\Users\\pcesa\\Desktop\\semestre 2021.2\\compiladores\\teste.txt");
+        CompilerScanner teste = new CompilerScanner(testFile);
+        teste.lexScan();
     }
     
 }
