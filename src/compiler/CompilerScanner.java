@@ -1,14 +1,22 @@
 package compiler;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class CompilerScanner  {
     private char currentChar;
     private byte currentKind;
     private int currentLine = 0;
     private int currentColumn = -1;
+    private int aux = -1;
     private StringBuffer currentSpelling;
-    private String stringTeste = "integer a2c = 12;";
+    private String stringTeste; // = "integer a2c = 12;";
     
-    public CompilerScanner(){
+    public CompilerScanner(Path testFile) throws IOException{
+        stringTeste = Files.readString(testFile); 
+        System.out.println(stringTeste);
+        System.out.println(stringTeste.length());
         nextSourceChar();
     }
     private void take(char expectedChar){
@@ -26,8 +34,9 @@ public class CompilerScanner  {
     }
     
     private void nextSourceChar(){
-        if (currentColumn < stringTeste.length()-1){
-            currentChar = stringTeste.charAt(++currentColumn);
+        if (aux < stringTeste.length()-1){
+            currentChar = stringTeste.charAt(++aux);
+            currentColumn++;
         }
     }
     private boolean isLetter(char charactere){
@@ -112,14 +121,20 @@ public class CompilerScanner  {
                     takeIt();
                 take('\n');       
                 break;
-            case ' ': case '\n':       
+            case ' ': case '\r': //case '\n':     
                 takeIt();            
                 break;
+            case '\n':
+                takeIt();
+                currentLine++;
+                currentColumn=-1; 
+                break;
+            default: System.out.println("teste");
         }
     }
     
     public Token scan(){
-        while(currentChar == '!' || currentChar == ' ' || currentChar == '\n')
+        while(currentChar == '!' || currentChar == ' ' || currentChar == '\n' || currentChar == '\r')
             scanSeparator();
         currentSpelling = new StringBuffer("");
         currentKind = scanToken();
@@ -127,4 +142,9 @@ public class CompilerScanner  {
         return new Token(currentKind, currentSpelling.toString(), currentLine, currentColumn);
     }
     
+    public void lexScan(){
+        while(aux < stringTeste.length()-1){
+            this.scan();
+        }
+    }
 }
