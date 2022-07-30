@@ -7,7 +7,7 @@ import compiler.Token;
 
 public class Parser {
     private Token currentToken;
-    private Scanner lexScanner; 
+    private CompilerScanner lexScanner; 
     // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
     // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
 
