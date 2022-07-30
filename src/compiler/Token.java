@@ -9,21 +9,22 @@ public class Token {
         this.kind = kind;
         this.spelling = spelling;
         
+        if (kind == IDENTIFIER){
+            for(byte k = BEGIN; k <= WHILE; k++){
+                if (spelling.equals(spellings[k])){
+                    this.kind = k;
+                    break;
+                }
+            }
+        }
+
         System.out.println("line:"+lin+" col:"+col+" token: "+this.kind+" value: "+this.spelling);
-//        if (kind == IDENTIFIER){
-//            for(byte k = BEGIN; k <= WHILE; k++){
-//                if (spelling.equals(spellings[k])){
-//                    this.kind = k;
-//                    break;
-//                }
-//            }
-//        }
     }
     
     public final static byte 
         IDENTIFIER = 0, 
         INTLITERAL = 1, 
-        // BEGIN ATÉ WHILE É IDENTIFIER
+        // BEGIN ATÉ VAR É IDENTIFIER (palavra reservada)
         PROGRAM = 2,
         BEGIN = 3,
         TRUE = 4,
@@ -37,10 +38,11 @@ public class Token {
         REAL = 12,
         OR = 13,
         AND = 14,
-        EOF = 15,
+        END = 15,  // tirei o EOF e deixei END
         WHILE = 16,
+        VAR = 17,
         // SOMA ATÉ BARRA É OPERATOR
-        SOMA = 17,   
+        SOMA = 28,    // mudei esse pra incluir o VAR
         MENORIGUAL = 18,
         MAIORIGUAL = 19,
         DIFERENTE = 20,
@@ -52,7 +54,7 @@ public class Token {
         IGUAL = 26, 
         BARRA = 27, 
         // LPAREN ATÉ VIRGULA É SÍMBOLO
-        LPAREN = 28, 
+        LPAREN = 38, // mudei esse pra incluir o VAR
         RPAREN = 29, 
         SEMICOLON = 30, 
         COLON = 31,
@@ -62,6 +64,7 @@ public class Token {
         ARROBA = 35,
         BECOMES = 36,
         VIRGULA = 37,
+        EOF = 39,
         // CÓDIGO DE ERRO LEXICO
         LEXICAL_ERROR = 100;
     
@@ -72,7 +75,7 @@ public class Token {
         "<programr>", 
         "begin", 
         "true", 
-	"if", 
+	    "if", 
         "then",
         "else",
         "do",
@@ -82,11 +85,12 @@ public class Token {
         "real",
         "or",
         "and",
-        "eof",
+        "end",
         "while",
-        "+",
+        "var",
+        //antiga posição do "+",
         "<=",
-        ">=",
+        ">=",   
         "<>",
         "-",
         "*",
@@ -95,7 +99,8 @@ public class Token {
         "<",
         "=",
         "/",
-        "(",
+        "+",
+        //antiga posição do "("
         ")",
         ";",
         ":",
@@ -105,6 +110,7 @@ public class Token {
         "@",
         ":=",
         ",",
+        "(",
         "<eof>"
     };
 }
