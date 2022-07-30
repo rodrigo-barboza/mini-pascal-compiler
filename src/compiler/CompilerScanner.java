@@ -1,24 +1,24 @@
 package compiler;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
-public class CompilerScanner  {
+public class CompilerScanner {
     private char currentChar;
     private byte currentKind;
-    private int currentLine = 0;
-    private int currentColumn = -1;
-    private int aux = -1;
+    private int currentLine;
+    private int currentColumn;
     private StringBuffer currentSpelling;
-    private String stringTeste; // = "integer a2c = 12;";
+//    private String[] lines = new String[10]; 
+    private String line;
     
-    public CompilerScanner(Path testFile) throws IOException{
-        stringTeste = Files.readString(testFile); 
-        System.out.println(stringTeste);
-        System.out.println(stringTeste.length());
-        nextSourceChar();
+    public CompilerScanner(String line, int currentLine, int currentColumn) {
+        this.line = line;
+        this.currentLine = currentLine;
+        this.currentColumn = currentColumn + 1;
     }
+    
     private void take(char expectedChar){
         if (currentChar == expectedChar){
             currentSpelling.append(currentChar);
@@ -34,11 +34,16 @@ public class CompilerScanner  {
     }
     
     private void nextSourceChar(){
-        if (aux < stringTeste.length()-1){
-            currentChar = stringTeste.charAt(++aux);
+        System.out.println(currentColumn + " = " + (line.length()));
+        if (currentColumn < (line.length()-1)) {
+            currentChar = line.charAt(currentColumn);
             currentColumn++;
+        } else {
+            currentColumn = 0;
+            currentLine++;
         }
     }
+    
     private boolean isLetter(char charactere){
         return charactere >= 'a' && charactere <= 'z';
     }
@@ -133,6 +138,14 @@ public class CompilerScanner  {
         }
     }
     
+    public int getCurrentLine(){
+        return currentLine;
+    }
+    
+    public int getCurrentColumn() {
+        return currentColumn;
+    }
+    
     public Token scan(){
         while(currentChar == '!' || currentChar == ' ' || currentChar == '\n' || currentChar == '\r')
             scanSeparator();
@@ -140,11 +153,5 @@ public class CompilerScanner  {
         currentKind = scanToken();
         // retornar linha e coluna
         return new Token(currentKind, currentSpelling.toString(), currentLine, currentColumn);
-    }
-    
-    public void lexScan(){
-        while(aux < stringTeste.length()-1){
-            this.scan();
-        }
     }
 }
