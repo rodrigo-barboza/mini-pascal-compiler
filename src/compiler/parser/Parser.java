@@ -1,4 +1,4 @@
-package compiler.AnalisadorSintatico;
+package compiler.parser;
 
 import java.util.Scanner;
 
@@ -7,7 +7,7 @@ import compiler.Token;
 
 public class Parser {
     private Token currentToken;
-    private CompilerScanner lexScanner; 
+    private Scanner lexScanner; 
     // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
     // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
 
@@ -105,7 +105,7 @@ public class Parser {
     private void parseComandoComposto(){
         accept(Token.BEGIN); // Tem que fazer um token pra begin (poder ser quando recebe '{') 
         parseListaDeComandos();
-        accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
+//        accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
     }
 
     private void parseCondicional(){
