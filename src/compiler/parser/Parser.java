@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class Parser {
     private Token currentToken;
-    private Scanner lexScanner; 
+    private CompilerScanner lexScanner; 
     // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
     // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
 
@@ -34,8 +34,17 @@ public class Parser {
         }
     }
     
+    public void parse(){
+        currentToken = lexScanner.scan();
+        parseProgram();
+        if(currentToken.kind != Token.EOF){
+            //Reportar erro
+        }
+    } 
+
     private void accept(byte expectedToken){
         if(currentToken.kind == expectedToken){
+            currentToken = lexScanner.scan();
             //Função accept
         } else {
             //Throw Exception -> mensagem de erro
@@ -43,8 +52,16 @@ public class Parser {
     }
 
     private void acceptIt(){
-        //passagem de caracter pro próximo (via scanner do léxico mesmo?)
+        currentToken = lexScanner.scan();
     }
+
+    private void parseProgram(){
+        accept(Token.PROGRAM);
+        parseId();
+        accept(Token.SEMICOLON);
+        parseCorpo();
+    }
+
 
     private void parseBoolLit(){
         switch (currentToken.kind){
@@ -222,6 +239,7 @@ public class Parser {
             case Token.MENOR: case Token.MAIORIGUAL: case Token.MENORIGUAL: case Token.MAIOR:
             case Token.IGUAL: case Token.DIFERENTE:
                 parseOpRel();
+                parseExpressaoSimples();
                 break;
             case Token.RPAREN: // é suficiente pra representar que a expressão acabou?
                 acceptIt();
