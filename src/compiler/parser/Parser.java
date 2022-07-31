@@ -7,12 +7,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class Parser {
-    private Token currentToken;
+    private byte currentKind;
     private CompilerScanner lexScanner; 
     // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
     // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
-
-    public Parser (String args) throws IOException {
+    
+    public void parse(String args)throws IOException {
         File file = new File(args);
         
         Scanner scanner = new Scanner(file);
@@ -30,21 +30,19 @@ public class Parser {
                 currentColumn
             );
             currentLine = scan.getCurrentLine();
-
+            currentKind = scan.getCurrentKind();
+            // chamar o parser aqui
+            parseProgram();
+            
+            if(currentKind != Token.EOF){
+                //Reportar erro
+            }
         }
-    }
-    
-    public void parse(){
-        currentToken = lexScanner.scan();
-        parseProgram();
-        if(currentToken.kind != Token.EOF){
-            //Reportar erro
-        }
+        
     } 
 
     private void accept(byte expectedToken){
-        if(currentToken.kind == expectedToken){
-            currentToken = lexScanner.scan();
+        if(currentKind == expectedToken){
             //Função accept
         } else {
             //Throw Exception -> mensagem de erro
@@ -52,7 +50,7 @@ public class Parser {
     }
 
     private void acceptIt(){
-        currentToken = lexScanner.scan();
+//        currentKind = lexScanner.scan();
     }
 
     private void parseProgram(){
@@ -64,7 +62,7 @@ public class Parser {
 
 
     private void parseBoolLit(){
-        switch (currentToken.kind){
+        switch (currentKind){
         case Token.TRUE:
             acceptIt();
             break;
@@ -78,7 +76,7 @@ public class Parser {
     }
 
     private void parseComando(){
-        switch (currentToken.kind){
+        switch (currentKind){
             // pc: Tem que rever isso aqui debaixo
             // Acho que deve começar com variável, assim:
             case Token.IDENTIFIER:
@@ -115,9 +113,9 @@ public class Parser {
         // caracterizamos diretamente tokens LETRA e DÍGITO (apesar de ter interger) 
 
         /* parseLetra();
-        while (currentToken.kind == Token.LETRA || currentToken.kind == Token.DIGITO)
+        while (currentKind == Token.LETRA || currentKind == Token.DIGITO)
         {
-            if (currentToken.kind == Token.LETRA)
+            if (currentKind == Token.LETRA)
                 parseLetra();
             else
                 parseDigito();
@@ -125,7 +123,7 @@ public class Parser {
         } */
 
         // pc: Como já temos o token IDENTIFIER, melhor só usar ele, não? Desse formato a seguir:
-        if(currentToken.kind == Token.IDENTIFIER){
+        if(currentKind == Token.IDENTIFIER){
             acceptIt();
         } else {
             //Chamada de erro
@@ -135,7 +133,7 @@ public class Parser {
     
     private void parseListaDeIds(){
         parseId();
-        while (currentToken.kind == Token.VIRGULA)
+        while (currentKind == Token.VIRGULA)
         {   
             acceptIt();
             parseId();
@@ -153,7 +151,7 @@ public class Parser {
         parseExpressao();
         accept(Token.THEN);
         parseComando();
-        switch (currentToken.kind)
+        switch (currentKind)
         {
         case Token.ELSE:
             acceptIt();
@@ -178,7 +176,7 @@ public class Parser {
     private void parseDeclaracoes(){
         //nosso identifier é suficiente pra ver se é uma declaração?
         //creio q sim mas tenho dúvidas
-        while (currentToken.kind == Token.IDENTIFIER)
+        while (currentKind == Token.IDENTIFIER)
         {
             parseDeclaracao();
             accept(Token.SEMICOLON); // Separador entre declarações
@@ -200,7 +198,7 @@ public class Parser {
     }
 
     private void parseTipo(){
-        switch (currentToken.kind)
+        switch (currentKind)
         {
             //case Token.TIPOSIMPLES: //Tem que separar pra todos os tipos, ficando então
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN: 
@@ -217,7 +215,7 @@ public class Parser {
     }
 
     private void parseTipoSimples(){
-        switch (currentToken.kind)
+        switch (currentKind)
         {
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN:
                 acceptIt();
@@ -235,7 +233,7 @@ public class Parser {
 
     private void parseExpressao(){
         parseTermo();
-        switch(currentToken.kind){
+        switch(currentKind){
             case Token.MENOR: case Token.MAIORIGUAL: case Token.MENORIGUAL: case Token.MAIOR:
             case Token.IGUAL: case Token.DIFERENTE:
                 parseOpRel();
@@ -254,9 +252,9 @@ public class Parser {
     private void parseExpressaoSimples(){
         //Devem ser feitas as verificações de cada tipo de token individual
         parseTermo();
-        while (currentToken.kind == Token.SOMA ||
-            currentToken.kind == Token.SUBTRACAO || 
-            currentToken.kind == Token.OR){
+        while (currentKind == Token.SOMA ||
+            currentKind == Token.SUBTRACAO || 
+            currentKind == Token.OR){
             parseOpAd();
             parseTermo();
         }
@@ -264,16 +262,16 @@ public class Parser {
     
     private void parseTermo(){
         parseFator();
-        while (currentToken.kind == Token.MULTIPLICACAO || 
-            currentToken.kind == Token.DIVISAO || 
-            currentToken.kind == Token.AND){
+        while (currentKind == Token.MULTIPLICACAO || 
+            currentKind == Token.DIVISAO || 
+            currentKind == Token.AND){
             parseOpMul();
             parseFator();
         }
     }
 
     private void parseFator(){
-        switch(currentToken.kind){
+        switch(currentKind){
             case Token.IDENTIFIER: case Token.TRUE: case Token.FALSE: case Token.INTLITERAL: 
             case Token.REAL: // vai ficar assim mesmo, a solução do float-literal e int literal?
                 parseLiteral();
@@ -292,7 +290,7 @@ public class Parser {
     }
     
     private void parseLiteral(){
-        switch (currentToken.kind)
+        switch (currentKind)
         {
             case Token.BOOLEAN:
                 parseBoolLit();
@@ -311,7 +309,7 @@ public class Parser {
 
     private void parseIntLit(){ //Isso aqui tá certo?
         accept(Token.INTLITERAL);
-        while (currentToken.kind == Token.INTLITERAL){
+        while (currentKind == Token.INTLITERAL){
             accept(Token.INTLITERAL);
         }
     }
@@ -335,17 +333,17 @@ public class Parser {
     // No compilador completo os veteranos também não botaram.
 
     private void parseListaDeComandos(){
-        while(currentToken.kind == Token.IF ||
-            currentToken.kind == Token.WHILE ||
-            currentToken.kind == Token.BEGIN ||
-            currentToken.kind == Token.IDENTIFIER){
+        while(currentKind == Token.IF ||
+            currentKind == Token.WHILE ||
+            currentKind == Token.BEGIN ||
+            currentKind == Token.IDENTIFIER){
             parseComando();
             accept(Token.SEMICOLON);
         }
     }
 
     private void parseOpAd(){
-        switch(currentToken.kind){
+        switch(currentKind){
             case Token.SOMA: case Token.SUBTRACAO: case Token.OR:
                 acceptIt();
                 break;
@@ -356,7 +354,7 @@ public class Parser {
     }
 
     private void parseOpMul(){
-        switch(currentToken.kind){
+        switch(currentKind){
             case Token.MULTIPLICACAO: case Token.DIVISAO: case Token.AND:
                 acceptIt();
                 break;
@@ -367,7 +365,7 @@ public class Parser {
     }
 
     private void parseOpRel(){
-        switch(currentToken.kind){
+        switch(currentKind){
             case Token.MENOR: case Token.MENORIGUAL: case Token.IGUAL:
             case Token.MAIORIGUAL: case Token.MAIOR: case Token.DIFERENTE:
                 acceptIt();

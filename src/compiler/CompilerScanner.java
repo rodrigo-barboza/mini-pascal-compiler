@@ -7,16 +7,18 @@ public class CompilerScanner {
     private int currentColumn;
     private StringBuffer currentSpelling;
     private String line;
-    private boolean finished = false;
+    private boolean finishedLine = false;
     
     public CompilerScanner(String line, int currentLine, int currentColumn) {
-        this.line = line;
-        this.currentLine = currentLine;
-        this.currentColumn = currentColumn;
-        this.currentChar = line.charAt(currentColumn);
-        
-        while(!finished){
-            scan();
+        if (line.length() > 0){
+            this.line = line;
+            this.currentLine = currentLine;
+            this.currentColumn = currentColumn;
+            this.currentChar = line.charAt(currentColumn);
+
+            while(!finishedLine){
+                scan();
+            }
         }
     }
     
@@ -30,7 +32,9 @@ public class CompilerScanner {
     }
     
     private void takeIt(){
-        currentSpelling.append(currentChar);
+        if (!isGraphic(currentChar)){
+            currentSpelling.append(currentChar);
+        }
         nextSourceChar();
     }
     
@@ -41,7 +45,7 @@ public class CompilerScanner {
         } else {
             currentColumn = 0;
             currentLine++;
-            finished = true;
+            finishedLine = true;
         }
     }
     
@@ -54,7 +58,7 @@ public class CompilerScanner {
     }
     
     private boolean isGraphic (char charactere){
-        return charactere == '!' || charactere == ' ' || charactere == 'F';
+        return charactere == '!' || charactere == ' ' || charactere == '\n';
     }
     
     private byte scanToken (){
@@ -73,41 +77,53 @@ public class CompilerScanner {
                     takeIt();
                 }
                 return Token.IDENTIFIER;
+            
             case '0': case '1': case '2': case '3': 
             case '4': case '5': case '6': case '7': 
             case '8': case '9':
                 takeIt();
-                while(isDigit(currentChar))
+                while(isDigit(currentChar)) {
                     takeIt();
+                }
                 return Token.INTLITERAL;
-                // falta botar takeIt antes de retornar
+                
             case '+':  takeIt(); return Token.SOMA;
             case '-':  takeIt(); return Token.SUBTRACAO;
             case '*':  takeIt(); return Token.MULTIPLICACAO;
             case '/':  takeIt(); return Token.DIVISAO;
+            
             case '<':
                 takeIt();
-                if (currentChar == '='){
-                    takeIt();
-                    return Token.MENORIGUAL;
-                } else if (currentChar == '>'){
-                    return Token.DIFERENTE;
-                } else return Token.MENOR;
+                switch(currentChar) {
+                    case '=': takeIt(); return Token.MENORIGUAL;
+                    case '>': takeIt(); return Token.DIFERENTE;
+                    default: take(currentChar); return Token.MENOR;
+                }
+                
             case '>':
                 takeIt();
                 if (currentChar == '='){
                     takeIt();
                     return Token.MAIORIGUAL;
-                } else return Token.MAIOR;
+                } else {
+                    take(currentChar);
+                    return Token.MAIOR;
+                } 
+                
             case '=': takeIt(); return Token.IGUAL;
             case '\\': takeIt(); return Token.BARRA;
             case ';':  takeIt(); return Token.SEMICOLON;
+            
             case ':':
                 takeIt();
                 if (currentChar == '='){
                     takeIt();
                     return Token.BECOMES;
-                } else return Token.COLON;
+                } else {
+                    take(currentChar);
+                    return Token.COLON;
+                }
+                
             case '(': takeIt(); return Token.LPAREN;
             case ')': takeIt(); return Token.RPAREN;
             case '.': takeIt(); return Token.PONTO;
@@ -124,8 +140,9 @@ public class CompilerScanner {
         switch(currentChar){
             case'!':
                 takeIt();      
-                while(isGraphic(currentChar))
+                while(isGraphic(currentChar)) {
                     takeIt();
+                }
                 take('\n');       
                 break;
             case ' ':  //case '\n':     
@@ -134,7 +151,6 @@ public class CompilerScanner {
             case '\n':
                 takeIt();
                 break;
-            default: System.out.println("teste");
         }
     }
     
@@ -146,20 +162,28 @@ public class CompilerScanner {
         return currentColumn;
     }
     
+    public byte getCurrentKind() {
+        return currentKind;
+    }
+    
     public Token scan(){
-        while(currentChar == '!' || currentChar == ' ' || currentChar == '\n' || currentChar == '\r')
+        while( currentChar == '!'  || 
+               currentChar == ' '  || 
+               currentChar == '\n' || 
+               currentChar == '\r' ) {
             scanSeparator();
-         
+        }
+            
         currentSpelling = new StringBuffer("");
         currentKind = scanToken();
         
         int line = (currentKind == Token.SEMICOLON) ? 
-                currentLine : 
-                currentLine + 1;
+                    currentLine : 
+                    currentLine + 1;
         
         int column = (currentKind == Token.SEMICOLON) ? 
-                this.line.length() - 1 : 
-                (currentColumn - currentSpelling.length() + 1);
+                      this.line.length() - 1 : 
+                     (currentColumn - currentSpelling.length() + 1);
         
         return new Token(
             currentKind, 

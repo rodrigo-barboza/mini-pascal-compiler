@@ -6,7 +6,8 @@ import java.io.IOException;
 public class Compiler {
 
     public static void main(String[] args) throws IOException {
-        Parser parser = new Parser(args[0]);
+        Parser parser = new Parser();
+        parser.parse(args[0]);
     }
     
 }

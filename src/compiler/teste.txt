@@ -1,2 +1,8 @@
-int var;
-if rodrigo;
+program teste;
+
+int z := 10;
+int y := 15;
+boolean rodrigo := true;
+
+if rodrigo then;
+    boolean x := (z >= y);
