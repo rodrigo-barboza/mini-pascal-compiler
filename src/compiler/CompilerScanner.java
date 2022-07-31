@@ -1,22 +1,23 @@
 package compiler;
 
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
-
 public class CompilerScanner {
     private char currentChar;
     private byte currentKind;
     private int currentLine;
     private int currentColumn;
     private StringBuffer currentSpelling;
-//    private String[] lines = new String[10]; 
     private String line;
+    private boolean finished = false;
     
     public CompilerScanner(String line, int currentLine, int currentColumn) {
         this.line = line;
         this.currentLine = currentLine;
-        this.currentColumn = currentColumn + 1;
+        this.currentColumn = currentColumn;
+        this.currentChar = line.charAt(currentColumn);
+        
+        while(!finished){
+            scan();
+        }
     }
     
     private void take(char expectedChar){
@@ -30,17 +31,17 @@ public class CompilerScanner {
     
     private void takeIt(){
         currentSpelling.append(currentChar);
-        nextSourceChar(); // next source charactere
+        nextSourceChar();
     }
     
     private void nextSourceChar(){
-        System.out.println(currentColumn + " = " + (line.length()));
-        if (currentColumn < (line.length()-1)) {
-            currentChar = line.charAt(currentColumn);
+        if (currentColumn < (line.length()-1)){
             currentColumn++;
+            currentChar = line.charAt(currentColumn);
         } else {
             currentColumn = 0;
             currentLine++;
+            finished = true;
         }
     }
     
@@ -68,8 +69,9 @@ public class CompilerScanner {
             case 'v': case 'w': case 'x':
             case 'y': case 'z':        
                 takeIt();
-                while(isLetter(currentChar) || isDigit(currentChar))
+                while(isLetter(currentChar) || isDigit(currentChar)){
                     takeIt();
+                }
                 return Token.IDENTIFIER;
             case '0': case '1': case '2': case '3': 
             case '4': case '5': case '6': case '7': 
@@ -126,13 +128,11 @@ public class CompilerScanner {
                     takeIt();
                 take('\n');       
                 break;
-            case ' ': case '\r': //case '\n':     
+            case ' ':  //case '\n':     
                 takeIt();            
                 break;
             case '\n':
                 takeIt();
-                currentLine++;
-                currentColumn=-1; 
                 break;
             default: System.out.println("teste");
         }
@@ -149,9 +149,23 @@ public class CompilerScanner {
     public Token scan(){
         while(currentChar == '!' || currentChar == ' ' || currentChar == '\n' || currentChar == '\r')
             scanSeparator();
+         
         currentSpelling = new StringBuffer("");
         currentKind = scanToken();
-        // retornar linha e coluna
-        return new Token(currentKind, currentSpelling.toString(), currentLine, currentColumn);
+        
+        int line = (currentKind == Token.SEMICOLON) ? 
+                currentLine : 
+                currentLine + 1;
+        
+        int column = (currentKind == Token.SEMICOLON) ? 
+                this.line.length() - 1 : 
+                (currentColumn - currentSpelling.length() + 1);
+        
+        return new Token(
+            currentKind, 
+            currentSpelling.toString(), 
+            line, 
+            column
+        );
     }
 }

@@ -9,7 +9,7 @@ public class Token {
         this.kind = kind;
         this.spelling = spelling;
         
-        System.out.println("line:"+lin+" col:"+col+" token: "+this.kind+" value: "+this.spelling);
+        System.out.println("line: "+lin+" col: "+col+" token: "+this.kind+" value: "+this.spelling);
 //        if (kind == IDENTIFIER){
 //            for(byte k = BEGIN; k <= WHILE; k++){
 //                if (spelling.equals(spellings[k])){

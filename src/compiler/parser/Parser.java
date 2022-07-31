@@ -1,9 +1,10 @@
 package compiler.parser;
 
 import java.util.Scanner;
-
 import compiler.CompilerScanner;
 import compiler.Token;
+import java.io.File;
+import java.io.IOException;
 
 public class Parser {
     private Token currentToken;
@@ -11,6 +12,28 @@ public class Parser {
     // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
     // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
 
+    public Parser (String args) throws IOException {
+        File file = new File(args);
+        
+        Scanner scanner = new Scanner(file);
+        int currentLine = 0, currentColumn = 0;
+        String line = "";
+        
+        System.out.println("Iniciando análise léxica...");
+        
+        while(scanner.hasNextLine()){
+            line = scanner.nextLine();
+               
+            CompilerScanner scan = new CompilerScanner(
+                line, 
+                currentLine,
+                currentColumn
+            );
+            currentLine = scan.getCurrentLine();
+
+        }
+    }
+    
     private void accept(byte expectedToken){
         if(currentToken.kind == expectedToken){
             //Função accept

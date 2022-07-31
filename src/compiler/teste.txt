@@ -1,2 +1,2 @@
-int x
-if rodrigo
+int var;
+if rodrigo;
