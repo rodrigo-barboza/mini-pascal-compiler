@@ -3,11 +3,16 @@ package compiler;
 
 public class Token {
     public byte kind;
+    public byte token;
     public String spelling;
+    public int line;
+    public int column;
     
-    public Token(byte kind, String spelling, int lin, int col){
-        this.kind = kind;
+    public Token(byte token, String spelling, int line, int column){
+        this.token = token;
         this.spelling = spelling;
+        this.line = line;
+        this.column = column;
         
         if (kind == IDENTIFIER){
             for(byte k = BEGIN; k <= WHILE; k++){
@@ -18,7 +23,7 @@ public class Token {
             }
         }
 
-        System.out.println("line:"+lin+" col:"+col+" token: "+this.kind+" value: "+this.spelling);
+        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);;;
     }
     
     public final static byte 
@@ -69,13 +74,13 @@ public class Token {
         LEXICAL_ERROR = 100;
     
     // falta adicionar os outros
-    private final static String[] spellings = {
+    public final static String[] spellings = {
         "<identifier>", 
         "<integer-literal>", 
         "<programr>", 
         "begin", 
         "true", 
-	    "if", 
+	"if", 
         "then",
         "else",
         "do",

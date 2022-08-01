@@ -8,19 +8,14 @@ public class CompilerScanner {
     private StringBuffer currentSpelling;
     private String line;
     private boolean finishedLine = false;
+    private int beginSpellingPos = 0;
     
     public CompilerScanner(String line, int currentLine, int currentColumn) {
-        if (line.length() > 0){
-            this.line = line;
-            this.currentLine = currentLine;
-            this.currentColumn = currentColumn;
-            this.currentChar = line.charAt(currentColumn);
-
-            while(!finishedLine){
-                scan();
-            }
-        }
-    }
+        this.line = line;
+        this.currentLine = currentLine;
+        this.currentColumn = currentColumn;
+        this.currentChar = line.charAt(currentColumn);
+}
     
     private void take(char expectedChar){
         if (currentChar == expectedChar){
@@ -39,7 +34,7 @@ public class CompilerScanner {
     }
     
     private void nextSourceChar(){
-        if (currentColumn < (line.length()-1)){
+        if (currentColumn != (line.length()-1)){
             currentColumn++;
             currentChar = line.charAt(currentColumn);
         } else {
@@ -62,20 +57,46 @@ public class CompilerScanner {
     }
     
     private byte scanToken (){
+        beginSpellingPos = currentColumn;
+        
         switch(currentChar){
             case 'a': case 'b': case 'c':
             case 'd': case 'e': case 'f':
             case 'g': case 'h': case 'i':
             case 'j': case 'k': case 'l':
             case 'm': case 'n': case 'o':
-            case 'p': case 'q': case 'r':
+            case 'p': 
+                takeIt();
+                if (currentChar == 'r'){
+                    takeIt();
+                    if (currentChar == 'o') {
+                        takeIt();
+                        if (currentChar == 'g') {
+                            takeIt();
+                            if (currentChar == 'r') {
+                                takeIt();
+                                if (currentChar == 'a') {
+                                    takeIt();
+                                    if (currentChar == 'm') {
+                                        takeIt();
+                                        return Token.PROGRAM;
+                                    } 
+                                }
+                            }
+                        }
+                    }
+                }
+            case 'q': case 'r':
             case 's': case 't': case 'u':
             case 'v': case 'w': case 'x':
             case 'y': case 'z':        
                 takeIt();
-                while(isLetter(currentChar) || isDigit(currentChar)){
+                while((isLetter(currentChar) || isDigit(currentChar)) 
+                        && currentColumn != (line.length() - 1)){
                     takeIt();
                 }
+                if (currentChar != ';')
+                    takeIt();
                 return Token.IDENTIFIER;
             
             case '0': case '1': case '2': case '3': 
@@ -120,7 +141,7 @@ public class CompilerScanner {
                     takeIt();
                     return Token.BECOMES;
                 } else {
-                    take(currentChar);
+                    takeIt();
                     return Token.COLON;
                 }
                 
@@ -162,8 +183,8 @@ public class CompilerScanner {
         return currentColumn;
     }
     
-    public byte getCurrentKind() {
-        return currentKind;
+    public boolean getFinishedLine() {
+        return finishedLine;
     }
     
     public Token scan(){
@@ -177,13 +198,10 @@ public class CompilerScanner {
         currentSpelling = new StringBuffer("");
         currentKind = scanToken();
         
-        int line = (currentKind == Token.SEMICOLON) ? 
-                    currentLine : 
-                    currentLine + 1;
-        
-        int column = (currentKind == Token.SEMICOLON) ? 
-                      this.line.length() - 1 : 
-                     (currentColumn - currentSpelling.length() + 1);
+        int line = (!this.finishedLine) ? 
+                    currentLine + 1: 
+                    currentLine;
+        int column = (beginSpellingPos + 1);
         
         return new Token(
             currentKind, 

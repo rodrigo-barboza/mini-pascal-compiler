@@ -2,67 +2,121 @@ package compiler.parser;
 
 import java.util.Scanner;
 import compiler.CompilerScanner;
+import java.util.ArrayList;
 import compiler.Token;
 import java.io.File;
 import java.io.IOException;
+import compiler.Constants;
 
 public class Parser {
-    private byte currentKind;
-    private CompilerScanner lexScanner; 
+    private Token currentToken;
+    private ArrayList<Token> tokens = new ArrayList<>();
+    private int pos = 0; 
+    private boolean hasError = false;
+    private int possibleError;
     // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
     // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
-    
-    public void parse(String args)throws IOException {
+
+    public void parse(String args) throws IOException {
         File file = new File(args);
-        
         Scanner scanner = new Scanner(file);
-        int currentLine = 0, currentColumn = 0;
+        
+        int currentLine = 0;
+        int currentColumn = 0;
+        boolean finishedLine = false;
         String line = "";
         
         System.out.println("Iniciando análise léxica...");
         
         while(scanner.hasNextLine()){
             line = scanner.nextLine();
-               
-            CompilerScanner scan = new CompilerScanner(
-                line, 
-                currentLine,
-                currentColumn
-            );
-            currentLine = scan.getCurrentLine();
-            currentKind = scan.getCurrentKind();
-            // chamar o parser aqui
-            parseProgram();
+            finishedLine = false;
             
-            if(currentKind != Token.EOF){
-                //Reportar erro
+            while (!finishedLine) {
+                // inicializa o léxico com a linha atual
+                if (line.length() > 0){
+                    CompilerScanner scan = new CompilerScanner(
+                        line, 
+                        currentLine,
+                        currentColumn
+                    );
+
+                    // executa o léxico
+                    tokens.add(scan.scan()); // armazena os tokens
+                    currentLine = scan.getCurrentLine();
+                    currentColumn = scan.getCurrentColumn();
+                    finishedLine = scan.getFinishedLine();
+                } else {
+                    currentLine++;
+                    break;
+                }
             }
         }
         
+        System.out.println("Análise léxica concluída. \n");
+        
+        
+        System.out.println("Iniciando análise sintática...");
+        // inicializa o currentToken com o primeiro Token
+        currentToken = tokens.get(0);
+        // chama a primeira regra da gramática
+        parseProgram();
+            
+//            if(currentKind != Token.EOF){
+//                //Reportar erro
+//            }
+        if (!hasError) {
+            System.out.println("Análise sintática concluída.\n");
+        }
+            
     } 
-
+    
     private void accept(byte expectedToken){
-        if(currentKind == expectedToken){
+        System.out.println("Chegou: "+currentToken.token+" -> Experava: "+expectedToken);
+        if(currentToken.token == expectedToken){
+            currentToken = tokens.get(++pos);
             //Função accept
         } else {
-            //Throw Exception -> mensagem de erro
+            hasError = true;
+            System.out.println(getParserError(
+                    possibleError,
+                    ";",
+                    currentToken.spelling
+            ));
         }
     }
 
     private void acceptIt(){
-//        currentKind = lexScanner.scan();
+        currentToken = tokens.get(++pos);
+    }
+    
+    private String getParserError(
+            int error, 
+            String expected, 
+            String received
+    ) {
+        switch(error) {
+            case 10: 
+                return "sintax error: " + currentToken.line + ":"
+                       + currentToken.column + ": " 
+                       + "expected '" + expected + "' but received '"
+                       + received + "'";
+        }
+        
+        return "";
     }
 
     private void parseProgram(){
         accept(Token.PROGRAM);
         parseId();
+        possibleError = Constants.SINTAX_ERROR_SEMICOLON;
         accept(Token.SEMICOLON);
         parseCorpo();
     }
 
 
     private void parseBoolLit(){
-        switch (currentKind){
+        switch (currentToken.token){
         case Token.TRUE:
             acceptIt();
             break;
@@ -76,7 +130,7 @@ public class Parser {
     }
 
     private void parseComando(){
-        switch (currentKind){
+        switch (currentToken.token){
             // pc: Tem que rever isso aqui debaixo
             // Acho que deve começar com variável, assim:
             case Token.IDENTIFIER:
@@ -113,9 +167,9 @@ public class Parser {
         // caracterizamos diretamente tokens LETRA e DÍGITO (apesar de ter interger) 
 
         /* parseLetra();
-        while (currentKind == Token.LETRA || currentKind == Token.DIGITO)
+        while (currentToken.token == Token.LETRA || currentToken.token == Token.DIGITO)
         {
-            if (currentKind == Token.LETRA)
+            if (currentToken.token == Token.LETRA)
                 parseLetra();
             else
                 parseDigito();
@@ -123,7 +177,7 @@ public class Parser {
         } */
 
         // pc: Como já temos o token IDENTIFIER, melhor só usar ele, não? Desse formato a seguir:
-        if(currentKind == Token.IDENTIFIER){
+        if(currentToken.token == Token.IDENTIFIER){
             acceptIt();
         } else {
             //Chamada de erro
@@ -133,7 +187,7 @@ public class Parser {
     
     private void parseListaDeIds(){
         parseId();
-        while (currentKind == Token.VIRGULA)
+        while (currentToken.token == Token.VIRGULA)
         {   
             acceptIt();
             parseId();
@@ -151,7 +205,7 @@ public class Parser {
         parseExpressao();
         accept(Token.THEN);
         parseComando();
-        switch (currentKind)
+        switch (currentToken.token)
         {
         case Token.ELSE:
             acceptIt();
@@ -176,7 +230,7 @@ public class Parser {
     private void parseDeclaracoes(){
         //nosso identifier é suficiente pra ver se é uma declaração?
         //creio q sim mas tenho dúvidas
-        while (currentKind == Token.IDENTIFIER)
+        while (currentToken.token == Token.IDENTIFIER)
         {
             parseDeclaracao();
             accept(Token.SEMICOLON); // Separador entre declarações
@@ -193,12 +247,12 @@ public class Parser {
         // pc: var é variável mesmo, não? Então isso vira identifier? Se for, fica assim:
         accept(Token.IDENTIFIER);
         parseListaDeIds();
-        accept(Token.COLON);
+        accept(Token.BECOMES);
         parseTipo();
     }
 
     private void parseTipo(){
-        switch (currentKind)
+        switch (currentToken.token)
         {
             //case Token.TIPOSIMPLES: //Tem que separar pra todos os tipos, ficando então
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN: 
@@ -215,7 +269,7 @@ public class Parser {
     }
 
     private void parseTipoSimples(){
-        switch (currentKind)
+        switch (currentToken.token)
         {
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN:
                 acceptIt();
@@ -233,7 +287,7 @@ public class Parser {
 
     private void parseExpressao(){
         parseTermo();
-        switch(currentKind){
+        switch(currentToken.token){
             case Token.MENOR: case Token.MAIORIGUAL: case Token.MENORIGUAL: case Token.MAIOR:
             case Token.IGUAL: case Token.DIFERENTE:
                 parseOpRel();
@@ -252,9 +306,9 @@ public class Parser {
     private void parseExpressaoSimples(){
         //Devem ser feitas as verificações de cada tipo de token individual
         parseTermo();
-        while (currentKind == Token.SOMA ||
-            currentKind == Token.SUBTRACAO || 
-            currentKind == Token.OR){
+        while (currentToken.token == Token.SOMA ||
+            currentToken.token == Token.SUBTRACAO || 
+            currentToken.token == Token.OR){
             parseOpAd();
             parseTermo();
         }
@@ -262,16 +316,16 @@ public class Parser {
     
     private void parseTermo(){
         parseFator();
-        while (currentKind == Token.MULTIPLICACAO || 
-            currentKind == Token.DIVISAO || 
-            currentKind == Token.AND){
+        while (currentToken.token == Token.MULTIPLICACAO || 
+            currentToken.token == Token.DIVISAO || 
+            currentToken.token == Token.AND){
             parseOpMul();
             parseFator();
         }
     }
 
     private void parseFator(){
-        switch(currentKind){
+        switch(currentToken.token){
             case Token.IDENTIFIER: case Token.TRUE: case Token.FALSE: case Token.INTLITERAL: 
             case Token.REAL: // vai ficar assim mesmo, a solução do float-literal e int literal?
                 parseLiteral();
@@ -290,7 +344,7 @@ public class Parser {
     }
     
     private void parseLiteral(){
-        switch (currentKind)
+        switch (currentToken.token)
         {
             case Token.BOOLEAN:
                 parseBoolLit();
@@ -309,7 +363,7 @@ public class Parser {
 
     private void parseIntLit(){ //Isso aqui tá certo?
         accept(Token.INTLITERAL);
-        while (currentKind == Token.INTLITERAL){
+        while (currentToken.token == Token.INTLITERAL){
             accept(Token.INTLITERAL);
         }
     }
@@ -333,17 +387,17 @@ public class Parser {
     // No compilador completo os veteranos também não botaram.
 
     private void parseListaDeComandos(){
-        while(currentKind == Token.IF ||
-            currentKind == Token.WHILE ||
-            currentKind == Token.BEGIN ||
-            currentKind == Token.IDENTIFIER){
+        while(currentToken.token == Token.IF ||
+            currentToken.token == Token.WHILE ||
+            currentToken.token == Token.BEGIN ||
+            currentToken.token == Token.IDENTIFIER){
             parseComando();
             accept(Token.SEMICOLON);
         }
     }
 
     private void parseOpAd(){
-        switch(currentKind){
+        switch(currentToken.token){
             case Token.SOMA: case Token.SUBTRACAO: case Token.OR:
                 acceptIt();
                 break;
@@ -354,7 +408,7 @@ public class Parser {
     }
 
     private void parseOpMul(){
-        switch(currentKind){
+        switch(currentToken.token){
             case Token.MULTIPLICACAO: case Token.DIVISAO: case Token.AND:
                 acceptIt();
                 break;
@@ -365,7 +419,7 @@ public class Parser {
     }
 
     private void parseOpRel(){
-        switch(currentKind){
+        switch(currentToken.token){
             case Token.MENOR: case Token.MENORIGUAL: case Token.IGUAL:
             case Token.MAIORIGUAL: case Token.MAIOR: case Token.DIFERENTE:
                 acceptIt();
