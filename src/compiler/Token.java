@@ -15,7 +15,7 @@ public class Token {
         this.column = column;
         
         if (kind == IDENTIFIER){
-            for(byte k = BEGIN; k <= WHILE; k++){
+            for(byte k = BEGIN; k <= VAR; k++){
                 if (spelling.equals(spellings[k])){
                     this.kind = k;
                     break;
