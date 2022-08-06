@@ -104,7 +104,16 @@ public class Parser {
         }
         
         return "";
+        
     }
+    // Dá pra generalizar o formato dos erros, fazendo o seguinte:
+    private String generalGetParserError(byte expectedType) {
+        return "sintax error: " + currentToken.line + ":"
+               + currentToken.column + ": " 
+               + "expected '" + Token.spellings[expectedType] + "' but received '"
+               + Token.spellings[currentToken.token] + "'";
+    }
+
 
     private void parseProgram(){
         accept(Token.PROGRAM);
@@ -124,8 +133,8 @@ public class Parser {
             acceptIt();
             break;
         default:
-            //ERRO
-            break;
+            //ERRO // Usando a função geral de erro:
+            generalGetParserError(Token.BOOLEAN);
         }
     }
 
@@ -146,7 +155,11 @@ public class Parser {
                 parseIterativo();
                 break;
             default:
-                //Mensagem de erro - acho que faz no AST?
+                //Mensagem de erro usando a função geral de erro:
+                System.out.println(generalGetParserError(Token.IDENTIFIER) + "OR");
+                System.out.println(generalGetParserError(Token.IF) + "OR");
+                System.out.println(generalGetParserError(Token.BEGIN) + "OR");
+                System.out.println(generalGetParserError(Token.WHILE));
                 break;
         }
     }
@@ -162,26 +175,14 @@ public class Parser {
     }
     
     private void parseId(){
-
-        // pc: Eu acho q tem que mudar a forma da verificação que Luan fez, até pq na nossa gramática não 
-        // caracterizamos diretamente tokens LETRA e DÍGITO (apesar de ter interger) 
-
-        /* parseLetra();
-        while (currentToken.token == Token.LETRA || currentToken.token == Token.DIGITO)
-        {
-            if (currentToken.token == Token.LETRA)
-                parseLetra();
-            else
-                parseDigito();
-            
-        } */
-
         // pc: Como já temos o token IDENTIFIER, melhor só usar ele, não? Desse formato a seguir:
         if(currentToken.token == Token.IDENTIFIER){
             acceptIt();
         } else {
-            //Chamada de erro
+            generalGetParserError(Token.IDENTIFIER);
         }
+        // Talvez a seguinte forma seja ainda melhor, pois em uma linha ele cobre o que ele quer acima:
+        //accept(Token.IDENTIFIER);
 
     }
     
@@ -195,9 +196,9 @@ public class Parser {
     }
 
     private void parseComandoComposto(){
-        accept(Token.BEGIN); // Tem que fazer um token pra begin (poder ser quando recebe '{') 
+        accept(Token.BEGIN); 
         parseListaDeComandos();
-//        accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
+        accept(Token.END); 
     }
 
     private void parseCondicional(){
@@ -205,20 +206,9 @@ public class Parser {
         parseExpressao();
         accept(Token.THEN);
         parseComando();
-        switch (currentToken.token)
-        {
-        case Token.ELSE:
+        if(currentToken.token == Token.ELSE){
             acceptIt();
             parseComando();
-            break;
-        case Token.EOF: //VAZIO???
-                        // pc: o tratamento do vazio se dá por um conjunto de espaços vazios
-                        // Então a gente pode só fazer um if else pra saber se tem comando, não?
-            acceptIt();
-            break;
-        default:
-            //ERRO
-            break;
         }
     }
 
@@ -243,9 +233,7 @@ public class Parser {
     }
 
     private void parseDeclaracaoDeVariavel(){
-        //accept(Token.VAR) //VAR FOI DECLARADO NO LEXICO?
-        // pc: var é variável mesmo, não? Então isso vira identifier? Se for, fica assim:
-        accept(Token.IDENTIFIER);
+        accept(Token.VAR);
         parseListaDeIds();
         accept(Token.BECOMES);
         parseTipo();
@@ -264,6 +252,9 @@ public class Parser {
                 break; */
             default:
                 // ERRO
+                System.out.println(generalGetParserError(Token.INTEGER) + "OR");
+                System.out.println(generalGetParserError(Token.REAL) + "OR");
+                System.out.println(generalGetParserError(Token.BOOLEAN));
                 break;
         }
     }
@@ -286,7 +277,15 @@ public class Parser {
     <expressão-simples> ( VAZIO |  <op-rel> <expressão-simples>) */
 
     private void parseExpressao(){
-        parseTermo();
+        parseExpressaoSimples();
+        if(currentToken.token == Token.MENOR || currentToken.token == Token.MENORIGUAL || currentToken.token == Token.MAIOR
+            || currentToken.token == Token.MAIORIGUAL || currentToken.token == Token.IGUAL || currentToken.token == Token.DIFERENTE
+            ){
+            acceptIt();
+            parseExpressaoSimples();
+        }
+        //pc: Acho q isso aqui embaixo tá errado, o que está acima é pq eu refiz
+        /* parseTermo();
         switch(currentToken.token){
             case Token.MENOR: case Token.MAIORIGUAL: case Token.MENORIGUAL: case Token.MAIOR:
             case Token.IGUAL: case Token.DIFERENTE:
@@ -297,9 +296,10 @@ public class Parser {
                 acceptIt();
                 break;
             default:
-                //Erro? Como representar o vazio? Rparen serve?
+                //Pode-se representar o vazio simplesmente não fazendo nada, e deixando o tratamento de erro
+                //Para a função seguinte
                 break;
-        }
+        } */
     }
 
     //Mesmo erro abaixo, como representar o vazio
@@ -356,35 +356,32 @@ public class Parser {
                 parseFloatLit();
                 break;
             default:
-                //ERRO
+                //ERRO - função geral de erro a seguir
+                System.out.println(generalGetParserError(Token.BOOLEAN) + "OR");
+                System.out.println(generalGetParserError(Token.INTLITERAL) + "OR");
+                System.out.println(generalGetParserError(Token.REAL));
                 break;
         }
     }
 
-    private void parseIntLit(){ //Isso aqui tá certo?
-        accept(Token.INTLITERAL);
-        while (currentToken.token == Token.INTLITERAL){
+    private void parseIntLit(){ 
+        accept(Token.INTLITERAL); // Eu acho q só o accept pode ser suficiente já, mas vale testar
+        /* while (currentToken.token == Token.INTLITERAL){
             accept(Token.INTLITERAL);
-        }
+        } */
     }
-    //Parse dígito não é necessário, eu acho, mas devemos alterar isso no léxico
 
     private void parseFloatLit(){ 
-        //não sei se é necessário mesmo, vale analisar isso melhor, e se for o caso,
-        //refazer também no léxico
+        // mesmo caso do parseintlit
         accept(Token.REAL);
     }
 
     private void parseIterativo(){
-        acceptIt();
+        accept(Token.WHILE);
         parseExpressao();
         accept(Token.DO);
         parseComando();
     }
-
-    // Acho que não faz sentido entrar um parse letra, então não botei
-    // As regras das letras acho q já são totalmente possíveis de serem tratadas no léxico.
-    // No compilador completo os veteranos também não botaram.
 
     private void parseListaDeComandos(){
         while(currentToken.token == Token.IF ||
@@ -401,8 +398,10 @@ public class Parser {
             case Token.SOMA: case Token.SUBTRACAO: case Token.OR:
                 acceptIt();
                 break;
-            default:
-                //mensagem de erro
+            default: // chamada da função geral de erro
+                System.out.println(generalGetParserError(Token.SOMA) + "OR");
+                System.out.println(generalGetParserError(Token.SUBTRACAO) + "OR");
+                System.out.println(generalGetParserError(Token.OR));
                 break;
         }
     }
@@ -413,7 +412,10 @@ public class Parser {
                 acceptIt();
                 break;
             default:
-                //mensagem de erro
+                //mensagem de erro -- chamada da função geral de erro
+                System.out.println(generalGetParserError(Token.MULTIPLICACAO) + "OR");
+                System.out.println(generalGetParserError(Token.DIVISAO) + "OR");
+                System.out.println(generalGetParserError(Token.AND));
                 break;
         }
     }
@@ -425,7 +427,13 @@ public class Parser {
                 acceptIt();
                 break;
             default:
-                //mensagem de erro
+                //mensagem de erro -- chamadas da mesma função geral de erro
+                System.out.println(generalGetParserError(Token.MENOR) + "OR");
+                System.out.println(generalGetParserError(Token.MENORIGUAL) + "OR");
+                System.out.println(generalGetParserError(Token.IGUAL) + "OR");
+                System.out.println(generalGetParserError(Token.MAIORIGUAL) + "OR");
+                System.out.println(generalGetParserError(Token.MAIOR) + "OR");
+                System.out.println(generalGetParserError(Token.DIFERENTE));
                 break;
         }
     }
@@ -438,12 +446,4 @@ public class Parser {
          | ...
     Esse outro é referente só a comentários mesmo, ou tem outras coisas?
     */
-    /* <programa> ::= //Não analisei se é LL1
-         program <id> ; <corpo> .
-    Como vai ser o parseProgram? Acho que precisamos modificar isso no
-    léxico pra que tenha um símbolo de começo de programa  
-    */
-
-
-
 }
