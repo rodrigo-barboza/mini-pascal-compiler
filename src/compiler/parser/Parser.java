@@ -119,6 +119,8 @@ public class Parser {
         } else {
             //Chamada de erro
         }
+        // Talvez a seguinte forma seja ainda melhor, pois em uma linha ele cobre o que ele quer acima:
+        //accept(Token.IDENTIFIER);
 
     }
     
@@ -132,7 +134,7 @@ public class Parser {
     }
 
     private void parseComandoComposto(){
-        accept(Token.BEGIN); // Tem que fazer um token pra begin (poder ser quando recebe '{') 
+        accept(Token.BEGIN); 
         parseListaDeComandos();
         accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
     }
@@ -283,17 +285,15 @@ public class Parser {
         }
     }
 
-    private void parseIntLit(){ //Isso aqui tá certo?
-        accept(Token.INTLITERAL);
-        while (currentToken.token == Token.INTLITERAL){
+    private void parseIntLit(){ 
+        accept(Token.INTLITERAL); // Eu acho q só o accept pode ser suficiente já, mas vale testar
+        /* while (currentToken.token == Token.INTLITERAL){
             accept(Token.INTLITERAL);
-        }
+        } */
     }
-    //Parse dígito não é necessário, eu acho, mas devemos alterar isso no léxico
 
     private void parseFloatLit(){ 
-        //não sei se é necessário mesmo, vale analisar isso melhor, e se for o caso,
-        //refazer também no léxico
+        // mesmo caso do parseintlit
         accept(Token.REAL);
     }
 
@@ -303,10 +303,6 @@ public class Parser {
         accept(Token.DO);
         parseComando();
     }
-
-    // Acho que não faz sentido entrar um parse letra, então não botei
-    // As regras das letras acho q já são totalmente possíveis de serem tratadas no léxico.
-    // No compilador completo os veteranos também não botaram.
 
     private void parseListaDeComandos(){
         while(currentToken.token == Token.IF ||
@@ -359,10 +355,5 @@ public class Parser {
          |#
          | ...
     Esse outro é referente só a comentários mesmo, ou tem outras coisas?
-    */
-    /* <programa> ::= //Não analisei se é LL1
-         program <id> ; <corpo> .
-    Como vai ser o parseProgram? Acho que precisamos modificar isso no
-    léxico pra que tenha um símbolo de começo de programa  
     */
 }
