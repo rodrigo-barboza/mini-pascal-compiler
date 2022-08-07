@@ -1,22 +1,30 @@
 package compiler;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+
 public class CompilerScanner {
     private char currentChar;
     private byte currentKind;
     private int currentLine;
     private int currentColumn;
+    private Scanner scanner;
     private StringBuffer currentSpelling;
     private String line;
     private boolean finishedLine = false;
     private int beginSpellingPos = 0;
     
-    public CompilerScanner(String line, int currentLine, int currentColumn) {
-        this.line = line;
-        this.currentLine = currentLine;
-        this.currentColumn = currentColumn;
+    public CompilerScanner(String args)  throws IOException {
+        File file = new File(args);
+        scanner = new Scanner(file);
+        
+        this.currentLine = 0;
+        this.currentColumn = 0;
+        this.line = scanner.nextLine();
         this.currentChar = line.charAt(currentColumn);
-}
-    
+    }
+
     private void take(char expectedChar){
         if (currentChar == expectedChar){
             currentSpelling.append(currentChar);
@@ -34,14 +42,10 @@ public class CompilerScanner {
     }
     
     private void nextSourceChar(){
-        if (currentColumn != (line.length()-1)){
-            currentColumn++;
-            currentChar = line.charAt(currentColumn);
-        } else {
-            currentColumn = 0;
-            currentLine++;
+        if (currentColumn != (line.length()-1))
+            currentChar = line.charAt(++currentColumn);
+        else 
             finishedLine = true;
-        }
     }
     
     private boolean isLetter(char charactere){
@@ -58,35 +62,13 @@ public class CompilerScanner {
     
     private byte scanToken (){
         beginSpellingPos = currentColumn;
-        
         switch(currentChar){
             case 'a': case 'b': case 'c':
             case 'd': case 'e': case 'f':
             case 'g': case 'h': case 'i':
             case 'j': case 'k': case 'l':
             case 'm': case 'n': case 'o':
-            case 'p': 
-                takeIt();
-                if (currentChar == 'r'){
-                    takeIt();
-                    if (currentChar == 'o') {
-                        takeIt();
-                        if (currentChar == 'g') {
-                            takeIt();
-                            if (currentChar == 'r') {
-                                takeIt();
-                                if (currentChar == 'a') {
-                                    takeIt();
-                                    if (currentChar == 'm') {
-                                        takeIt();
-                                        return Token.PROGRAM;
-                                    } 
-                                }
-                            }
-                        }
-                    }
-                }
-            case 'q': case 'r':
+            case 'p': case 'q': case 'r':
             case 's': case 't': case 'u':
             case 'v': case 'w': case 'x':
             case 'y': case 'z':        
@@ -95,8 +77,6 @@ public class CompilerScanner {
                         && currentColumn != (line.length() - 1)){
                     takeIt();
                 }
-                if (currentChar != ';')
-                    takeIt();
                 return Token.IDENTIFIER;
             
             case '0': case '1': case '2': case '3': 
@@ -175,39 +155,44 @@ public class CompilerScanner {
         }
     }
     
-    public int getCurrentLine(){
-        return currentLine;
-    }
-    
-    public int getCurrentColumn() {
-        return currentColumn;
-    }
-    
-    public boolean getFinishedLine() {
-        return finishedLine;
-    }
-    
     public Token scan(){
-        while( currentChar == '!'  || 
-               currentChar == ' '  || 
-               currentChar == '\n' || 
-               currentChar == '\r' ) {
-            scanSeparator();
-        }
+        int line = 0, column = 0;
+        
+        if (!finishedLine) {
+            while( currentChar == '!'  || 
+                    currentChar == ' '  || 
+                    currentChar == '\n' || 
+                    currentChar == '\r' ) {
+                 scanSeparator();
+             }
             
-        currentSpelling = new StringBuffer("");
-        currentKind = scanToken();
+            currentSpelling = new StringBuffer("");
+            currentKind = scanToken();
+            
+            line = currentLine + 1;
+            column = (beginSpellingPos + 1);
+            
+            return new Token(
+                currentKind, 
+                currentSpelling.toString(), 
+                line, 
+                column
+            );
+        } 
         
-        int line = (!this.finishedLine) ? 
-                    currentLine + 1: 
-                    currentLine;
-        int column = (beginSpellingPos + 1);
+        this.currentLine++;
+        this.currentColumn = 0;
+        this.line = scanner.nextLine();
+        this.finishedLine = false;
         
-        return new Token(
-            currentKind, 
-            currentSpelling.toString(), 
-            line, 
-            column
-        );
+        while(this.line.length() == 0) {
+            this.currentLine++;
+            this.currentColumn = 0;
+            this.line = scanner.nextLine();
+            this.finishedLine = false;
+        }
+        
+        this.currentChar = this.line.charAt(currentColumn);
+        return null;
     }
 }

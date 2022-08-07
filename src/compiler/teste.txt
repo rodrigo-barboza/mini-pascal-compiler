@@ -1,7 +1,8 @@
-program teste;
+program name;
 
-int z := 10;
-int y := 15;
+var z := 10;
+var y := 15;
+
 boolean rodrigo := true;
 
 if rodrigo then;

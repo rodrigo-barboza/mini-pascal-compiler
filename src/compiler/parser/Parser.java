@@ -1,115 +1,52 @@
 package compiler.parser;
 
-import java.util.Scanner;
 import compiler.CompilerScanner;
-import java.util.ArrayList;
 import compiler.Token;
-import java.io.File;
 import java.io.IOException;
-import compiler.Constants;
 
 public class Parser {
     private Token currentToken;
-    private ArrayList<Token> tokens = new ArrayList<>();
-    private int pos = 0; 
+    private CompilerScanner scan;
     private boolean hasError = false;
-    private int possibleError;
-    // O compilador da equipe de eduardo utiliza o scanner léxico pra várias funções.
-    // Não sei se é 100% necessário, mas acho q será no accept e acceptIt
 
     public void parse(String args) throws IOException {
-        File file = new File(args);
-        Scanner scanner = new Scanner(file);
+        scan = new CompilerScanner(args);
+        currentToken = scan.scan();
         
-        int currentLine = 0;
-        int currentColumn = 0;
-        boolean finishedLine = false;
-        String line = "";
-        
-        System.out.println("Iniciando análise léxica...");
-        
-        while(scanner.hasNextLine()){
-            line = scanner.nextLine();
-            finishedLine = false;
-            
-            while (!finishedLine) {
-                // inicializa o léxico com a linha atual
-                if (line.length() > 0){
-                    CompilerScanner scan = new CompilerScanner(
-                        line, 
-                        currentLine,
-                        currentColumn
-                    );
-
-                    // executa o léxico
-                    tokens.add(scan.scan()); // armazena os tokens
-                    currentLine = scan.getCurrentLine();
-                    currentColumn = scan.getCurrentColumn();
-                    finishedLine = scan.getFinishedLine();
-                } else {
-                    currentLine++;
-                    break;
-                }
-            }
+        if (currentToken != null) {
+            parseProgram();
         }
-        
-        System.out.println("Análise léxica concluída. \n");
-        
-        
-        System.out.println("Iniciando análise sintática...");
-        // inicializa o currentToken com o primeiro Token
-        currentToken = tokens.get(0);
-        // chama a primeira regra da gramática
-        parseProgram();
-            
-//            if(currentKind != Token.EOF){
-//                //Reportar erro
-//            }
-        if (!hasError) {
-            System.out.println("Análise sintática concluída.\n");
-        }
-            
     } 
     
     private void accept(byte expectedToken){
-        System.out.println("Chegou: "+currentToken.token+" -> Experava: "+expectedToken);
+        System.out.println("Chegou: "+currentToken.token+" -> Experava: "+expectedToken+"\n");
+        
         if(currentToken.token == expectedToken){
-            currentToken = tokens.get(++pos);
-            //Função accept
+            acceptIt();
         } else {
             hasError = true;
-            System.out.println(getParserError(
-                    possibleError,
-                    ";",
-                    currentToken.spelling
-            ));
+            System.out.println(getParserError(Token.spellings[expectedToken]));
         }
     }
 
     private void acceptIt(){
-        currentToken = tokens.get(++pos);
+        Token temp = scan.scan();
+        while (temp == null) {
+            temp = scan.scan();
+        }
+        currentToken = temp;
     }
     
-    private String getParserError(
-            int error, 
-            String expected, 
-            String received
-    ) {
-        switch(error) {
-            case 10: 
-                return "sintax error: " + currentToken.line + ":"
-                       + currentToken.column + ": " 
-                       + "expected '" + expected + "' but received '"
-                       + received + "'";
-        }
-        
-        return "";
+    private String getParserError(String expected) {
+        return "sintax error: " + currentToken.line + ":"
+               + currentToken.column + ": " 
+               + "expected '" + expected  + "' but received '"
+               + Token.spellings[currentToken.token]  + "'";
     }
 
     private void parseProgram(){
         accept(Token.PROGRAM);
         parseId();
-        possibleError = Constants.SINTAX_ERROR_SEMICOLON;
         accept(Token.SEMICOLON);
         parseCorpo();
     }
@@ -197,7 +134,7 @@ public class Parser {
     private void parseComandoComposto(){
         accept(Token.BEGIN); // Tem que fazer um token pra begin (poder ser quando recebe '{') 
         parseListaDeComandos();
-//        accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
+        accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
     }
 
     private void parseCondicional(){
@@ -205,20 +142,10 @@ public class Parser {
         parseExpressao();
         accept(Token.THEN);
         parseComando();
-        switch (currentToken.token)
-        {
-        case Token.ELSE:
+        
+        if(currentToken.token == Token.ELSE){
             acceptIt();
             parseComando();
-            break;
-        case Token.EOF: //VAZIO???
-                        // pc: o tratamento do vazio se dá por um conjunto de espaços vazios
-                        // Então a gente pode só fazer um if else pra saber se tem comando, não?
-            acceptIt();
-            break;
-        default:
-            //ERRO
-            break;
         }
     }
 
@@ -243,9 +170,7 @@ public class Parser {
     }
 
     private void parseDeclaracaoDeVariavel(){
-        //accept(Token.VAR) //VAR FOI DECLARADO NO LEXICO?
-        // pc: var é variável mesmo, não? Então isso vira identifier? Se for, fica assim:
-        accept(Token.IDENTIFIER);
+        accept(Token.VAR);
         parseListaDeIds();
         accept(Token.BECOMES);
         parseTipo();
@@ -286,19 +211,16 @@ public class Parser {
     <expressão-simples> ( VAZIO |  <op-rel> <expressão-simples>) */
 
     private void parseExpressao(){
-        parseTermo();
-        switch(currentToken.token){
-            case Token.MENOR: case Token.MAIORIGUAL: case Token.MENORIGUAL: case Token.MAIOR:
-            case Token.IGUAL: case Token.DIFERENTE:
-                parseOpRel();
-                parseExpressaoSimples();
-                break;
-            case Token.RPAREN: // é suficiente pra representar que a expressão acabou?
-                acceptIt();
-                break;
-            default:
-                //Erro? Como representar o vazio? Rparen serve?
-                break;
+        parseExpressaoSimples();
+        if( currentToken.token == Token.MENOR || 
+            currentToken.token == Token.MENORIGUAL || 
+            currentToken.token == Token.MAIOR || 
+            currentToken.token == Token.MAIORIGUAL || 
+            currentToken.token == Token.IGUAL || 
+            currentToken.token == Token.DIFERENTE )
+        {
+            acceptIt();
+            parseExpressaoSimples();
         }
     }
 
@@ -376,7 +298,7 @@ public class Parser {
     }
 
     private void parseIterativo(){
-        acceptIt();
+        accept(Token.WHILE);
         parseExpressao();
         accept(Token.DO);
         parseComando();
@@ -443,7 +365,4 @@ public class Parser {
     Como vai ser o parseProgram? Acho que precisamos modificar isso no
     léxico pra que tenha um símbolo de começo de programa  
     */
-
-
-
 }

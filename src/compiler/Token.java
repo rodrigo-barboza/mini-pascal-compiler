@@ -14,16 +14,16 @@ public class Token {
         this.line = line;
         this.column = column;
         
-        if (kind == IDENTIFIER){
-            for(byte k = BEGIN; k <= WHILE; k++){
+        if (token == IDENTIFIER){
+            for(byte k = PROGRAM; k <= VAR; k++){
                 if (spelling.equals(spellings[k])){
-                    this.kind = k;
+                    this.token = k;
                     break;
                 }
             }
         }
 
-        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);;;
+        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);
     }
     
     public final static byte 
@@ -77,7 +77,7 @@ public class Token {
     public final static String[] spellings = {
         "<identifier>", 
         "<integer-literal>", 
-        "<programr>", 
+        "program", 
         "begin", 
         "true", 
 	"if", 
