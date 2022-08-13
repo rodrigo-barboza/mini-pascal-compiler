@@ -1,6 +1,8 @@
 package compiler.AbsSintTree;
 
+import compiler.Token;
+
 public class NodoListaDeIds extends AST {
-    public NodoId id;
+    public Token id;
     public NodoListaDeIds next; // representação do id* que segue
 }
