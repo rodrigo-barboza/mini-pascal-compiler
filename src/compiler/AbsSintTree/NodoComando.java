@@ -1,5 +1,5 @@
 package compiler.absSintTree;
 
-public class NodoComando extends AST{
+public class NodoComando extends Ast {
     
 }

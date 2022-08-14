@@ -1,5 +1,5 @@
 package compiler.absSintTree;
 
-public class NodoDeclaracao extends AST{
+public class NodoDeclaracao extends Ast {
     public NodoDeclaracaoVar declaracoesDeVariaveis;
 }

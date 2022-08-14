@@ -176,7 +176,8 @@ public class Parser {
 
     private NodoDeclaracoes parseDeclaracoes() throws ParserException {
         NodoDeclaracoes first = null, last = null, aux;
-        while (currentToken.token == Token.IDENTIFIER)
+
+        while (currentToken.token == Token.VAR)
         {   
             aux = new NodoDeclaracoes(); // Enquanto tiver identifier, vai criando novos objetos
             aux.dec = parseDeclaracao(); // Armazenamento temporário do objeto

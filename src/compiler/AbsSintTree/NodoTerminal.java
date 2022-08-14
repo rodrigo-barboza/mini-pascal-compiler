@@ -1,5 +1,5 @@
 package compiler.absSintTree;
 
-public class NodoTerminal extends AST{
+public class NodoTerminal extends Ast {
     public String speeling;
 }

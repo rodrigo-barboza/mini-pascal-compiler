@@ -2,7 +2,7 @@ package compiler.absSintTree;
 
 import compiler.Token;
 
-public class NodoExpressao extends AST{
+public class NodoExpressao extends Ast {
     public NodoExpressaoSimples expSimp1;
     //Aqui temos que expressão é seguido de VAZIO ou OP-REL + expSimp
     //Então ambos abaixo podem ser null, mas se um não for null, ambos devem existir
