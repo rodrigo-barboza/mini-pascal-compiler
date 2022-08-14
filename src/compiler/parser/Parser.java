@@ -2,6 +2,26 @@ package compiler.parser;
 
 import compiler.CompilerScanner;
 import compiler.Token;
+import compiler.AbsSintTree.NodoComando;
+import compiler.AbsSintTree.NodoComandoAtrib;
+import compiler.AbsSintTree.NodoComandoComposto;
+import compiler.AbsSintTree.NodoComandoCond;
+import compiler.AbsSintTree.NodoComandoIterativo;
+import compiler.AbsSintTree.NodoCorpo;
+import compiler.AbsSintTree.NodoDeclaracao;
+import compiler.AbsSintTree.NodoDeclaracaoVar;
+import compiler.AbsSintTree.NodoDeclaracoes;
+import compiler.AbsSintTree.NodoExpressao;
+import compiler.AbsSintTree.NodoExpressaoSimples;
+import compiler.AbsSintTree.NodoExpressaoSimplesEstrela;
+import compiler.AbsSintTree.NodoFator;
+import compiler.AbsSintTree.NodoListaComandos;
+import compiler.AbsSintTree.NodoListaDeIds;
+import compiler.AbsSintTree.NodoProgram;
+import compiler.AbsSintTree.NodoTermo;
+import compiler.AbsSintTree.NodoTermoEstrela;
+import compiler.AbsSintTree.NodoTipo;
+
 import java.io.IOException;
 
 public class Parser {
@@ -44,176 +64,203 @@ public class Parser {
                + Token.spellings[currentToken.token]  + "'";
     }
 
-    private void parseProgram(){
+    private NodoProgram parseProgram(){
+        NodoProgram progAST = new NodoProgram();
         accept(Token.PROGRAM);
-        parseId();
+        progAST.id = parseId();
         accept(Token.SEMICOLON);
-        parseCorpo();
+        progAST.corpo = parseCorpo();
+        return progAST;
     }
 
 
-    private void parseBoolLit(){
+    private Token parseBoolLit(){
+        Token boollitAST = null;
         switch (currentToken.token){
         case Token.TRUE:
+            boollitAST = currentToken;
             acceptIt();
             break;
         case Token.FALSE:
+            boollitAST = currentToken;
             acceptIt();
             break;
         default:
             //ERRO
             break;
         }
+        return boollitAST;
     }
 
-    private void parseComando(){
+    private NodoComando parseComando(){
+        NodoComando comandoAST = null;
         switch (currentToken.token){
-            // pc: Tem que rever isso aqui debaixo
-            // Acho que deve começar com variável, assim:
-            case Token.IDENTIFIER:
-                parseAtribuicao();
+            // Vamos atribuir para comandoAST o tipo especial de comando ao qual ele tá associado. Por exemplo:
+            case Token.IDENTIFIER: 
+                // Aqui parseAtribuição vai retornar um NodoComandoAtrib, e comandoAST vai acabar "virando" desse tipo,
+                // que é uma classe filha da classe comando.
+                comandoAST = parseAtribuicao(); 
                 break;
             case Token.IF:
-                parseCondicional();
+                comandoAST = parseCondicional();
                 break;
             case Token.BEGIN:
-                parseComandoComposto();
+                comandoAST = parseComandoComposto();
                 break;
             case Token.WHILE:
-                parseIterativo();
+                comandoAST = parseIterativo();
                 break;
             default:
                 //Mensagem de erro - acho que faz no AST?
                 break;
         }
+        return comandoAST;
     }
 
-    private void parseAtribuicao(){             
-        parseVariavel();                        
+    private NodoComandoAtrib parseAtribuicao(){             
+        NodoComandoAtrib comAtribAST = new NodoComandoAtrib();
+        comAtribAST.var = parseVariavel();                        
         accept(Token.BECOMES);                  
-        parseExpressao();                       
+        comAtribAST.expressao = parseExpressao();
+        return comAtribAST;      
     }
 
-    private void parseVariavel(){
-        parseId();
+    private Token parseVariavel(){ //podia ser simplificado, mas deixei pra seguir a orientação da árvore desenhada
+        return parseId();
     }
     
-    private void parseId(){
-
-        // pc: Eu acho q tem que mudar a forma da verificação que Luan fez, até pq na nossa gramática não 
-        // caracterizamos diretamente tokens LETRA e DÍGITO (apesar de ter interger) 
-
-        /* parseLetra();
-        while (currentToken.token == Token.LETRA || currentToken.token == Token.DIGITO)
-        {
-            if (currentToken.token == Token.LETRA)
-                parseLetra();
-            else
-                parseDigito();
-            
-        } */
-
-        // pc: Como já temos o token IDENTIFIER, melhor só usar ele, não? Desse formato a seguir:
+    private Token parseId(){
+        Token auxToken;
         if(currentToken.token == Token.IDENTIFIER){
+            auxToken = currentToken;
             acceptIt();
+            return auxToken;
         } else {
             //Chamada de erro
         }
-        // Talvez a seguinte forma seja ainda melhor, pois em uma linha ele cobre o que ele quer acima:
-        //accept(Token.IDENTIFIER);
-
+        return null;
     }
     
-    private void parseListaDeIds(){
-        parseId();
+    private NodoListaDeIds parseListaDeIds(){ // Lógica parecida com o declarações*, mas é id,(id)* (ao menos 1 obrigatório)
+        //Referente ao id obrigatório:
+        NodoListaDeIds listaIdsAST = new NodoListaDeIds();
+        listaIdsAST.id = parseId();
+        //Referente ao id*
+        NodoListaDeIds last=null, aux;
         while (currentToken.token == Token.VIRGULA)
         {   
             acceptIt();
-            parseId();
+            aux = new NodoListaDeIds();
+            aux.id = parseId();
+            if(last == null){ // Acontece somente no primeiro caso que não é obrigatório (aka segundo caso)
+                listaIdsAST.next = aux;  
+                last = aux;
+            } else {
+                last.next = aux; // Diz que o último objeto criado é o next de last.
+                last = aux; // Passa o ponteiro referente a last para aux, que é o último objeto criado.
+            }
         }
+        return listaIdsAST;
     }
 
-    private void parseComandoComposto(){
-        accept(Token.BEGIN); 
-        parseListaDeComandos();
+    private NodoComandoComposto parseComandoComposto(){
+        NodoComandoComposto comCompAST = new NodoComandoComposto();
+        accept(Token.BEGIN);
+        comCompAST.listComands = parseListaDeComandos();
         accept(Token.END); // Tem que fazer um token pra end também (pode ser quando recebe '}')
+        return comCompAST;
     }
 
-    private void parseCondicional(){
+    private NodoComandoCond parseCondicional(){
+        NodoComandoCond comCondAST = new NodoComandoCond();
         accept(Token.IF);
-        parseExpressao();
+        comCondAST.expressao = parseExpressao();
         accept(Token.THEN);
-        parseComando();
+        comCondAST.comandoIf = parseComando(); // Comando caso entre no IF
         
-        if(currentToken.token == Token.ELSE){
+        if(currentToken.token == Token.ELSE){ // Caso entre no else
             acceptIt();
-            parseComando();
+            comCondAST.comandoElse = parseComando();
         }
+        return comCondAST;
     }
 
-    private void parseCorpo(){
-        parseDeclaracoes();
-        parseComandoComposto();
+    private NodoCorpo parseCorpo(){
+        NodoCorpo corpoAST = new NodoCorpo();
+        corpoAST.decs = parseDeclaracoes();
+        corpoAST.comComp = parseComandoComposto();
+        return corpoAST;
     }
 
-    private void parseDeclaracoes(){
-        //nosso identifier é suficiente pra ver se é uma declaração?
-        //creio q sim mas tenho dúvidas
+    private NodoDeclaracoes parseDeclaracoes(){
+        NodoDeclaracoes first = null, last = null, aux;
         while (currentToken.token == Token.IDENTIFIER)
-        {
-            parseDeclaracao();
+        {   
+            aux = new NodoDeclaracoes(); // Enquanto tiver identifier, vai criando novos objetos
+            aux.dec = parseDeclaracao(); // Armazenamento temporário do objeto
+            if(first == null){ //caso seja o primeiro objeto 'declaração'
+                first = aux;
+            } else { // Caso nao seja o primeiro
+                last.next = aux;
+            }
+            last = aux; // Pega o caso mais atual
+            //No primeiro caso, ele vira a declaração 1
+            //Na segunda iteração, ele primeiro diz q o next da declaração 1 é a declaração 2, e dps vira a declaração 2
+            //Nas iterações seguintes ele continua na mesma lógica: primeiramente last é X, depois diz q X.next é o novo 
+            //objeto aux criado, e por último last vira o novo objeto aux (que é o objeto X+1) 
+
             accept(Token.SEMICOLON); // Separador entre declarações
         }
-    
+        return first;
     }
 
-    private void parseDeclaracao(){
-        parseDeclaracaoDeVariavel();
+    private NodoDeclaracao parseDeclaracao(){
+        NodoDeclaracao decAST = new NodoDeclaracao();
+        decAST.declaracoesDeVariaveis = parseDeclaracaoDeVariavel();
+        return decAST;
     }
 
-    private void parseDeclaracaoDeVariavel(){
+    private NodoDeclaracaoVar parseDeclaracaoDeVariavel(){
+        NodoDeclaracaoVar decVar = new NodoDeclaracaoVar();
         accept(Token.VAR);
-        parseListaDeIds();
+        decVar.listIds = parseListaDeIds();
         accept(Token.BECOMES);
-        parseTipo();
+        decVar.tipo = parseTipo();
+        return decVar;
     }
 
-    private void parseTipo(){
+    private NodoTipo parseTipo(){
+        NodoTipo tipoAST = new NodoTipo();
         switch (currentToken.token)
         {
-            //case Token.TIPOSIMPLES: //Tem que separar pra todos os tipos, ficando então
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN: 
-                parseTipoSimples();
+                tipoAST.tipoSimp = parseTipoSimples();
                 break;
-            //Estou comentando o código abaixo pq não foi especificada um tipo vazio
-            /* case Token.EOF: // VAZIO???
-                acceptIt();
-                break; */
             default:
                 // ERRO
                 break;
         }
+        return tipoAST;
     }
 
-    private void parseTipoSimples(){
+    private Token parseTipoSimples(){
+        Token tiposimplesAST=null;
         switch (currentToken.token)
         {
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN:
+                tiposimplesAST = currentToken;
                 acceptIt();
                 break;
             default:
                 // ERRO
                 break;
         }
+        return tiposimplesAST;
     }
-    //Parse dígito não é necessário, eu acho, mas devemos alterar isso no léxico
 
-
-    /* <expressão> ::= 
-    <expressão-simples> ( VAZIO |  <op-rel> <expressão-simples>) */
-
-    private void parseExpressao(){
-        parseExpressaoSimples();
+    private NodoExpressao parseExpressao(){
+        NodoExpressao expressaoAST = new NodoExpressao();
+        expressaoAST.expSimp1 = parseExpressaoSimples();
         if( currentToken.token == Token.MENOR || 
             currentToken.token == Token.MENORIGUAL || 
             currentToken.token == Token.MAIOR || 
@@ -221,131 +268,181 @@ public class Parser {
             currentToken.token == Token.IGUAL || 
             currentToken.token == Token.DIFERENTE )
         {
-            acceptIt();
-            parseExpressaoSimples();
+            expressaoAST.oprel = parseOpRel();
+            //acceptIt(); // já tem um accept it no parseOpRel()
+            expressaoAST.expSimp2 = parseExpressaoSimples();
         }
+        return expressaoAST;
     }
 
-    //Mesmo erro abaixo, como representar o vazio
-    private void parseExpressaoSimples(){
-        //Devem ser feitas as verificações de cada tipo de token individual
-        parseTermo();
+    private NodoExpressaoSimples parseExpressaoSimples(){
+        NodoExpressaoSimples expSimpAST = new NodoExpressaoSimples();
+        expSimpAST.termo1 = parseTermo();
+        //Para o grupo (op_ad + termo)*, temos:
+        NodoExpressaoSimplesEstrela first = null, last=null, aux;
         while (currentToken.token == Token.SOMA ||
             currentToken.token == Token.SUBTRACAO || 
             currentToken.token == Token.OR){
-            parseOpAd();
-            parseTermo();
+                aux = new NodoExpressaoSimplesEstrela();
+                aux.opAd = parseOpAd();
+                aux.termo2 = parseTermo();
+                if(first == null){
+                    first = aux;
+                } else {
+                    last.next = aux;
+                }
+                last = aux;
         }
+        expSimpAST.possibleNext = first;
+        return expSimpAST;
     }
     
-    private void parseTermo(){
-        parseFator();
+    private NodoTermo parseTermo(){
+        NodoTermo termoAST = new NodoTermo();
+        termoAST.fator = parseFator();
+        //Para o grupo (op_mul + fator)*, temos:
+        NodoTermoEstrela first=null, last=null, aux;
         while (currentToken.token == Token.MULTIPLICACAO || 
             currentToken.token == Token.DIVISAO || 
             currentToken.token == Token.AND){
-            parseOpMul();
-            parseFator();
+                aux = new NodoTermoEstrela();
+                aux.opMul = parseOpMul();
+                aux.fator2 = parseFator();
+                if(first == null){
+                    first = aux;
+                } else {
+                    last.next = aux;
+                }
+                last = aux;
         }
+        termoAST.possibleNext = first;
+        return termoAST;
     }
 
-    private void parseFator(){
+    private NodoFator parseFator(){
+        NodoFator fatorAST = new NodoFator();
         switch(currentToken.token){
             case Token.IDENTIFIER: case Token.TRUE: case Token.FALSE: case Token.INTLITERAL: 
-            case Token.REAL: // vai ficar assim mesmo, a solução do float-literal e int literal?
-                parseLiteral();
+            case Token.REAL: 
+                fatorAST.terminal = parseLiteral();
                 break;
-
             case Token.LPAREN:
                 acceptIt();
-                parseExpressao();
+                fatorAST.expressao = parseExpressao();
                 accept(Token.RPAREN);
                 break;
-
             default:
                 //mensagem de erro
                 break;
         }
+        return fatorAST;
     }
     
-    private void parseLiteral(){
+    private Token parseLiteral(){
+        Token literalAST=null;
         switch (currentToken.token)
         {
             case Token.BOOLEAN:
-                parseBoolLit();
+                literalAST = parseBoolLit();
                 break;
             case Token.INTLITERAL:
-                parseIntLit();
+                literalAST = parseIntLit();
                 break;
             case Token.REAL:
-                parseFloatLit();
+                literalAST = parseFloatLit();
                 break;
             default:
                 //ERRO
                 break;
         }
+        return literalAST;
     }
 
-    private void parseIntLit(){ 
-        accept(Token.INTLITERAL); // Eu acho q só o accept pode ser suficiente já, mas vale testar
-        /* while (currentToken.token == Token.INTLITERAL){
-            accept(Token.INTLITERAL);
-        } */
+    private Token parseIntLit(){ 
+        Token intlitAST=currentToken; 
+        // Teoricamente, a entrada nessa função só ocorre caso já tenha sido verificado o tipo
+        // Erros sintáticos em teoria não podem ocorrer por causa dessa função, então (?)  
+        accept(Token.INTLITERAL); 
+        return intlitAST;
     }
 
-    private void parseFloatLit(){ 
+    private Token parseFloatLit(){ 
         // mesmo caso do parseintlit
+        Token floatlitAST = currentToken;
         accept(Token.REAL);
+        return floatlitAST;
     }
 
-    private void parseIterativo(){
+    private NodoComandoIterativo parseIterativo(){
+        NodoComandoIterativo comIteAST = new NodoComandoIterativo();
         accept(Token.WHILE);
-        parseExpressao();
+        comIteAST.expressao = parseExpressao();
         accept(Token.DO);
-        parseComando();
+        comIteAST.comando = parseComando();
+        return comIteAST;
     }
 
-    private void parseListaDeComandos(){
+    private NodoListaComandos parseListaDeComandos(){ // Mesma lógica de parte de declarações (a derivação é comando*)
+        NodoListaComandos first = null, last=null, aux;
         while(currentToken.token == Token.IF ||
             currentToken.token == Token.WHILE ||
             currentToken.token == Token.BEGIN ||
-            currentToken.token == Token.IDENTIFIER){
-            parseComando();
+            currentToken.token == Token.IDENTIFIER)
+        {
+            aux = new NodoListaComandos();
+            aux.comando = parseComando(); 
+            if(first == null){
+                first = aux;
+            } else {
+                last.next = aux;
+            }
+            last = aux;
             accept(Token.SEMICOLON);
         }
+        return first;
     }
 
-    private void parseOpAd(){
+    private Token parseOpAd(){
+        Token auxToken = null;
         switch(currentToken.token){
             case Token.SOMA: case Token.SUBTRACAO: case Token.OR:
+                auxToken = currentToken;
                 acceptIt();
                 break;
             default:
                 //mensagem de erro
                 break;
         }
+        return auxToken;
     }
 
-    private void parseOpMul(){
+    private Token parseOpMul(){
+        Token auxToken = null;
         switch(currentToken.token){
             case Token.MULTIPLICACAO: case Token.DIVISAO: case Token.AND:
+                auxToken = currentToken;
                 acceptIt();
                 break;
             default:
                 //mensagem de erro
                 break;
         }
+        return auxToken;
     }
 
-    private void parseOpRel(){
+    private Token parseOpRel(){
+        Token auxToken = null;
         switch(currentToken.token){
             case Token.MENOR: case Token.MENORIGUAL: case Token.IGUAL:
             case Token.MAIORIGUAL: case Token.MAIOR: case Token.DIFERENTE:
+                auxToken = currentToken;
                 acceptIt();
                 break;
             default:
                 //mensagem de erro
                 break;
         }
+        return auxToken;
     }
 
     //Outras coisas que faltam representar nesses parses, que estou em dúvida e por isso não farei:
