@@ -1,4 +1,4 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
 import compiler.Token;
 

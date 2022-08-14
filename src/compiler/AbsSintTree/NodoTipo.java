@@ -1,5 +1,7 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
+
+import compiler.Token;
 
 public class NodoTipo extends AST{
-    public NodoTipoSimples tipoSimp;
+    public Token tipoSimp;
 }

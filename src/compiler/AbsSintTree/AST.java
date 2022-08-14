@@ -1,5 +1,5 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
-public abstract class AST {
+public abstract class Ast {
     
 }

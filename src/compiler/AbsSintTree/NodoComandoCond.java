@@ -1,4 +1,4 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
 public class NodoComandoCond extends NodoComando{
     public NodoExpressao expressao;

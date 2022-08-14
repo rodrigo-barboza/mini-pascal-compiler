@@ -1,4 +1,4 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
 public class NodoDeclaracaoVar extends AST{
     public NodoListaDeIds listIds;

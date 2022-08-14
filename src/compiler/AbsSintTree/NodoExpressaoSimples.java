@@ -1,4 +1,4 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
 public class NodoExpressaoSimples extends NodoExpressao{
     public NodoTermo termo1;

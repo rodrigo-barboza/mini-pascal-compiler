@@ -1,5 +1,5 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
-public class NodoComandoComposto extends AST {
+public class NodoComandoComposto extends NodoComando {
     public NodoListaComandos listComands;
 }

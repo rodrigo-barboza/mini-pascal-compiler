@@ -1,4 +1,4 @@
-package compiler.AbsSintTree;
+package compiler.absSintTree;
 
 public class NodoTermo extends AST{
     public NodoFator fator;
