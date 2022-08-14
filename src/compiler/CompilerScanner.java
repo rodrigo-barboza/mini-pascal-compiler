@@ -76,6 +76,8 @@ public class CompilerScanner {
                 while((isLetter(currentChar) || isDigit(currentChar)) 
                         && currentColumn != (line.length() - 1)){
                     takeIt();
+                    if (currentChar == 'n')
+                        takeIt();
                 }
                 return Token.IDENTIFIER;
             
@@ -182,17 +184,34 @@ public class CompilerScanner {
         
         this.currentLine++;
         this.currentColumn = 0;
-        this.line = scanner.nextLine();
-        this.finishedLine = false;
-        
-        while(this.line.length() == 0) {
-            this.currentLine++;
-            this.currentColumn = 0;
-            this.line = scanner.nextLine();
-            this.finishedLine = false;
+
+        if (!getNextLine()) {
+            return new Token(
+                Token.EOF, 
+                "<eof>", 
+                line, 
+                column
+            );
         }
-        
+
+        this.finishedLine = false; 
         this.currentChar = this.line.charAt(currentColumn);
         return null;
+    }
+
+    private Boolean getNextLine() {
+        if (scanner.hasNextLine()) {
+            this.line = scanner.nextLine();
+
+            while(this.line.length() == 0) {
+                this.currentLine++;
+                this.currentColumn = 0;
+                getNextLine();
+            }
+
+            return true;
+        } 
+        
+        return false;
     }
 }

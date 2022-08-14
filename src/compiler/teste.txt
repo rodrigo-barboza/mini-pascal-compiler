@@ -1,9 +1,9 @@
-program name;
+program teste;
 
-var z := 10;
-var y := 15;
+var x, y, z: real;
+var rons: boolean;
 
-boolean rodrigo := true;
-
-if rodrigo then;
-    boolean x := (z >= y);
+begin
+    x := 10;
+    y := 222;
+end.

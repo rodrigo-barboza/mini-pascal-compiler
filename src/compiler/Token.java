@@ -22,8 +22,12 @@ public class Token {
                 }
             }
         }
-
-        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);
+        
+        if (token == EOF) {
+            this.spelling = spellings[token];
+        }
+        
+//        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);
     }
     
     public final static byte 
@@ -58,7 +62,6 @@ public class Token {
         MENOR = 25,  
         IGUAL = 26, 
         BARRA = 27, 
-        // LPAREN ATÉ VIRGULA É SÍMBOLO
         LPAREN = 38, // mudei esse pra incluir o VAR
         RPAREN = 29, 
         SEMICOLON = 30, 
