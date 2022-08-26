@@ -1,2 +1,2 @@
 # Compilador Mini Pascal
-a mini pascal compiler developed in java for compilers discipline
+A mini pascal compiler developed in java for compilers discipline
