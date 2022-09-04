@@ -1,6 +1,6 @@
-package compiler.absSintTree;
+package compiler.sintaxTree;
 
-import compiler.Token;
+import compiler.lexicalAnalyzer.Token;
 
 public class NodoExpressaoSimplesEstrela extends NodoExpressao{
     public Token opAd;

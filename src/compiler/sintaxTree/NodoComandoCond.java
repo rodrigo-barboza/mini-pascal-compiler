@@ -1,4 +1,4 @@
-package compiler.absSintTree;
+package compiler.sintaxTree;
 
 public class NodoComandoCond extends NodoComando{
     public NodoExpressao expressao;
@@ -6,4 +6,8 @@ public class NodoComandoCond extends NodoComando{
     // Da maneira que a análise de contexto for implementada
     public NodoComando comandoIf;
     public NodoComando comandoElse;
+
+    public void visit (Visitor v) {
+        v.visitNodoComandoCond(this);
+    }  
 }

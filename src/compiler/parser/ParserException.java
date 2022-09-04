@@ -1,7 +1,8 @@
 package compiler.parser;
 
-import compiler.Token;
 import java.io.FileNotFoundException;
+
+import compiler.lexicalAnalyzer.Token;
 
 public class ParserException extends FileNotFoundException {
     public ParserException(Token currentToken, String expected){

@@ -1,7 +1,9 @@
-package compiler;
-// na linha tal coluna tal token tal valor tal (um token em cada linha)
+package compiler.lexicalAnalyzer;
 
-public class Token {
+import compiler.sintaxTree.Ast;
+import compiler.sintaxTree.Visitor;
+
+public class Token extends Ast {
     public byte kind;
     public byte token;
     public String spelling;
@@ -121,4 +123,9 @@ public class Token {
         "(",
         "<eof>"
     };
+
+    @Override
+    public void visit(Visitor v) {
+        // v.visitNodoTipo(this);
+    }
 }

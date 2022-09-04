@@ -1,26 +1,26 @@
 package compiler.parser;
 
-import compiler.CompilerScanner;
-import compiler.Token;
-import compiler.absSintTree.NodoComando;
-import compiler.absSintTree.NodoComandoAtrib;
-import compiler.absSintTree.NodoComandoComposto;
-import compiler.absSintTree.NodoComandoCond;
-import compiler.absSintTree.NodoComandoIterativo;
-import compiler.absSintTree.NodoCorpo;
-import compiler.absSintTree.NodoDeclaracao;
-import compiler.absSintTree.NodoDeclaracaoVar;
-import compiler.absSintTree.NodoDeclaracoes;
-import compiler.absSintTree.NodoExpressao;
-import compiler.absSintTree.NodoExpressaoSimples;
-import compiler.absSintTree.NodoExpressaoSimplesEstrela;
-import compiler.absSintTree.NodoFator;
-import compiler.absSintTree.NodoListaComandos;
-import compiler.absSintTree.NodoListaDeIds;
-import compiler.absSintTree.NodoProgram;
-import compiler.absSintTree.NodoTermo;
-import compiler.absSintTree.NodoTermoEstrela;
-import compiler.absSintTree.NodoTipo;
+import compiler.lexicalAnalyzer.CompilerScanner;
+import compiler.lexicalAnalyzer.Token;
+import compiler.sintaxTree.NodoComando;
+import compiler.sintaxTree.NodoComandoAtrib;
+import compiler.sintaxTree.NodoComandoComposto;
+import compiler.sintaxTree.NodoComandoCond;
+import compiler.sintaxTree.NodoComandoIterativo;
+import compiler.sintaxTree.NodoCorpo;
+import compiler.sintaxTree.NodoDeclaracao;
+import compiler.sintaxTree.NodoDeclaracaoVar;
+import compiler.sintaxTree.NodoDeclaracoes;
+import compiler.sintaxTree.NodoExpressao;
+import compiler.sintaxTree.NodoExpressaoSimples;
+import compiler.sintaxTree.NodoExpressaoSimplesEstrela;
+import compiler.sintaxTree.NodoFator;
+import compiler.sintaxTree.NodoListaComandos;
+import compiler.sintaxTree.NodoListaDeIds;
+import compiler.sintaxTree.NodoProgram;
+import compiler.sintaxTree.NodoTermo;
+import compiler.sintaxTree.NodoTermoEstrela;
+import compiler.sintaxTree.NodoTipo;
 
 import java.io.IOException;
 
@@ -28,13 +28,11 @@ public class Parser {
     private Token currentToken;
     private CompilerScanner scan;
 
-    public void parse(String args) throws IOException {
+    public NodoProgram parse(String args) throws IOException {
         scan = new CompilerScanner(args);
         currentToken = scan.scan();
         
-        if (currentToken != null) {
-            parseProgram();
-        }
+        return parseProgram();
     } 
     
     private void accept(byte expectedToken) throws ParserException {
@@ -59,10 +57,14 @@ public class Parser {
     
     private NodoProgram parseProgram() throws ParserException {
         NodoProgram progAST = new NodoProgram();
-        accept(Token.PROGRAM);
-        progAST.id = parseId();
-        accept(Token.SEMICOLON);
-        progAST.corpo = parseCorpo();
+        
+        if (currentToken != null) {
+            accept(Token.PROGRAM);
+            progAST.id = parseId();
+            accept(Token.SEMICOLON);
+            progAST.corpo = parseCorpo();
+        }
+        
         return progAST;
     }
 
@@ -227,7 +229,7 @@ public class Parser {
     }
 
     private Token parseTipoSimples(){
-        Token tiposimplesAST=null;
+        Token tiposimplesAST = null;
         switch (currentToken.token)
         {
             case Token.INTEGER: case Token.REAL: case Token.BOOLEAN:

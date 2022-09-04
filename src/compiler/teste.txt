@@ -1,9 +1,0 @@
-program teste;
-
-var x, y, z: real;
-var rons: boolean;
-
-begin
-    x := 10;
-    y := 222;
-end.

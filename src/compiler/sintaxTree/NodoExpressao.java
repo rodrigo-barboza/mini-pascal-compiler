@@ -1,6 +1,6 @@
-package compiler.absSintTree;
+package compiler.sintaxTree;
 
-import compiler.Token;
+import compiler.lexicalAnalyzer.Token;
 
 public class NodoExpressao extends Ast {
     public NodoExpressaoSimples expSimp1;
@@ -8,4 +8,8 @@ public class NodoExpressao extends Ast {
     //Então ambos abaixo podem ser null, mas se um não for null, ambos devem existir
     public Token oprel;
     public NodoExpressaoSimples expSimp2;
+
+    public void visit (Visitor v) {
+        v.visitNodoExpressao(this);
+    }  
 }

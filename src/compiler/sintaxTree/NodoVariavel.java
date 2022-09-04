@@ -1,4 +1,4 @@
-package compiler.absSintTree;
+package compiler.sintaxTree;
 
 public class NodoVariavel {
     
