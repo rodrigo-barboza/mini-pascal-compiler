@@ -88,7 +88,7 @@ public class Parser {
         NodoComando comandoAST = null;
         switch (currentToken.token){
             case Token.IDENTIFIER:
-                parseAtribuicao();
+                comandoAST = parseAtribuicao();
                 break;
             case Token.IF:
                 comandoAST = parseCondicional();
@@ -97,7 +97,7 @@ public class Parser {
                 comandoAST = parseComandoComposto();
                 break;
             case Token.WHILE:
-                parseIterativo();
+                comandoAST = parseIterativo();
                 break;
         }
         return comandoAST;
