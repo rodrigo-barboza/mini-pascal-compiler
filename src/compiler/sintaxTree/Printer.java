@@ -37,6 +37,7 @@ public class Printer implements Visitor {
     public void visitNodoComando(NodoComando nodoComando) {
         if (nodoComando != null) {
             nodoComando.visit(this);
+            //Aquele ele vai visitar não o nodo comando em si, mas um nodo que extends comando
         }
     }
 
@@ -44,7 +45,8 @@ public class Printer implements Visitor {
     public void visitNodoComandoAtrib (NodoComandoAtrib nodoComandoAtrib) {
         if (nodoComandoAtrib != null) {
             if (nodoComandoAtrib.var != null) {
-                nodoComandoAtrib.var.visit(this);
+                //nodoComandoAtrib.var.visit(this);
+                System.out.println(nodoComandoAtrib.var.spelling);
             }
             i++;
             indent();
@@ -152,10 +154,9 @@ public class Printer implements Visitor {
             if (nodoExpressao.expSimp1 != null) {
                 nodoExpressao.expSimp1.visit(this);
             }
-            if (nodoExpressao.oprel != null) {
-                nodoExpressao.oprel.visit(this);
-            }
-            if (nodoExpressao.expSimp2 != null) {
+            if (nodoExpressao.oprel != null && nodoExpressao.expSimp2 != null) {
+                //nodoExpressao.oprel.visit(this);
+                System.out.println(nodoExpressao.oprel.spelling);
                 nodoExpressao.expSimp2.visit(this);
             }
         }
@@ -179,7 +180,8 @@ public class Printer implements Visitor {
     public void visitNodoExpressaoSimplesEstrela(NodoExpressaoSimplesEstrela nodoExpressaoSimplesEstrela) {
         if (nodoExpressaoSimplesEstrela != null) {
             if (nodoExpressaoSimplesEstrela.opAd != null) {
-                nodoExpressaoSimplesEstrela.opAd.visit(this);
+                //nodoExpressaoSimplesEstrela.opAd.visit(this);
+                System.out.println(nodoExpressaoSimplesEstrela.opAd.spelling);
             }
             if (nodoExpressaoSimplesEstrela.termo2 != null) {
                 nodoExpressaoSimplesEstrela.termo2.visit(this);
@@ -195,7 +197,14 @@ public class Printer implements Visitor {
     @Override
     public void visitNodoFator(NodoFator nodoFator) {
         if (nodoFator != null) {
-            nodoFator.visit(this);
+            //nodoFator.visit(this);
+            if(nodoFator.terminal != null){
+                System.out.println(nodoFator.terminal.spelling);
+            } else { //else aqui pois fator OU deriva um terminal OU uma expressão, os 2 n pode
+                if(nodoFator.expressao != null){ // última garantia que a expressao vai existir
+                    nodoFator.expressao.visit(this);
+                }
+            }
         }
     }
 
@@ -246,7 +255,8 @@ public class Printer implements Visitor {
     public void visitNodoTermoEstrela(NodoTermoEstrela nodoTermoEstrela) {
         if (nodoTermoEstrela != null) {
             if (nodoTermoEstrela.opMul != null) {
-                nodoTermoEstrela.opMul.visit(this);
+                //nodoTermoEstrela.opMul.visit(this);
+                System.out.println(nodoTermoEstrela.opMul.spelling);
             }
             if (nodoTermoEstrela.fator2 != null) {
                 nodoTermoEstrela.fator2.visit(this);
@@ -262,7 +272,10 @@ public class Printer implements Visitor {
     @Override
     public void visitNodoTipo(NodoTipo nodoTipo) {
         if (nodoTipo != null) {
-            nodoTipo.visit(this);
+            //nodoTipo.visit(this);
+            //System.out.println(nodeTipoSimples.tipoSimples);
+            //System.out.println("teste pq buguei");
+            System.out.println(nodoTipo.tipoSimp.spelling);
         }
     }
 
