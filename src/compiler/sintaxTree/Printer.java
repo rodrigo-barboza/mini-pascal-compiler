@@ -6,7 +6,7 @@ public class Printer implements Visitor {
     public int i = 0;
 
     public void print(NodoProgram nodoProgram) {
-        System.out.println("---> Imprimindo a arvore\n");
+        System.out.println("\n\n---> Imprimindo a arvore\n");
         nodoProgram.visit(this);
     }
 

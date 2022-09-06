@@ -28,7 +28,7 @@ public class Token extends Ast {
         if (token == EOF) {
             this.spelling = spellings[token];
         }
-        
+        if(line == 1 & column == 1){System.out.println("\nEtapa de Análise Léxica\n");}
         System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);
     }
     
