@@ -202,6 +202,7 @@ public class Printer implements Visitor {
         if (nodoFator != null) {
             //nodoFator.visit(this);
             if(nodoFator.terminal != null){
+                indent();
                 System.out.println(nodoFator.terminal.spelling);
             } else { //else aqui pois fator OU deriva um terminal OU uma expressão, os 2 n pode
                 if(nodoFator.expressao != null){ // última garantia que a expressao vai existir
