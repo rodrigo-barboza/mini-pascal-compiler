@@ -74,6 +74,7 @@ public class Printer implements Visitor {
                 nodoComandoCond.expressao.visit(this);
             }
             i++;
+            indent();
             if (nodoComandoCond.comandoIf != null) {
                 nodoComandoCond.comandoIf.visit(this);
                 System.out.println("");
@@ -170,6 +171,7 @@ public class Printer implements Visitor {
             }
             if (nodoExpressaoSimples.possibleNext != null) {
                 i++;
+                indent();
                 nodoExpressaoSimples.possibleNext.visit(this);
                 i--;
             }
@@ -188,6 +190,7 @@ public class Printer implements Visitor {
             }
             if (nodoExpressaoSimplesEstrela.next != null) {
                 i++;
+                indent();
                 nodoExpressaoSimplesEstrela.next.visit(this);
                 i--;
             }
@@ -245,6 +248,7 @@ public class Printer implements Visitor {
             }
             if (nodoTermo.possibleNext != null) {
                 i++;
+                indent();
                 nodoTermo.possibleNext.visit(this);
                 i--;
             }
@@ -263,6 +267,7 @@ public class Printer implements Visitor {
             }
             if (nodoTermoEstrela.next != null) {
                 i++;
+                indent();
                 nodoTermoEstrela.next.visit(this);
                 i--;
             }
@@ -272,17 +277,7 @@ public class Printer implements Visitor {
     @Override
     public void visitNodoTipo(NodoTipo nodoTipo) {
         if (nodoTipo != null) {
-            //nodoTipo.visit(this);
-            //System.out.println(nodeTipoSimples.tipoSimples);
-            //System.out.println("teste pq buguei");
             System.out.println(nodoTipo.tipoSimp.spelling);
         }
     }
-
-    // @Override
-    // public void visitNodoTipo(Token nodoTipo) {
-    //     if (nodoTipo != null) {
-    //         nodoTipo.visit(this);
-    //     }
-    // }
 }

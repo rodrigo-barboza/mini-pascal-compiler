@@ -13,6 +13,7 @@ public class CompilerScanner {
     private StringBuffer currentSpelling;
     private String line;
     private boolean finishedLine = false;
+    private boolean hasComent = false;
     private int beginSpellingPos = 0;
     
     public CompilerScanner(String args)  throws IOException {
@@ -29,23 +30,25 @@ public class CompilerScanner {
         if (currentChar == expectedChar){
             currentSpelling.append(currentChar);
             nextSourceChar();
-        } else {
-            System.out.println("Erro Lexico");
         }
     }
     
     private void takeIt(){
         if (!isGraphic(currentChar)){
-            currentSpelling.append(currentChar);
+            if (!hasComent) {
+                currentSpelling.append(currentChar);
+            }
         }
+
         nextSourceChar();
     }
     
     private void nextSourceChar(){
-        if (currentColumn != (line.length()-1))
+        if (currentColumn != (line.length() - 1))
             currentChar = line.charAt(++currentColumn);
-        else 
+        else {
             finishedLine = true;
+        }
     }
     
     private boolean isLetter(char charactere){
@@ -73,6 +76,11 @@ public class CompilerScanner {
             case 'v': case 'w': case 'x':
             case 'y': case 'z':        
                 takeIt();
+
+                if (currentChar == 'o' && !currentSpelling.equals("d")) {
+                    takeIt();
+                }
+
                 while((isLetter(currentChar) || isDigit(currentChar)) 
                         && currentColumn != (line.length() - 1)){
                     takeIt();
@@ -142,13 +150,12 @@ public class CompilerScanner {
     private void scanSeparator(){
         switch(currentChar){
             case'!':
-                takeIt();      
-                while(isGraphic(currentChar)) {
-                    takeIt();
-                }
-                take('\n');       
+                currentLine++;
+                currentColumn = 0;
+                getNextLine();
+                currentChar = line.charAt(currentColumn);
                 break;
-            case ' ':  //case '\n':     
+            case ' ':    
                 takeIt();            
                 break;
             case '\n':

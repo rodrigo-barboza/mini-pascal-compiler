@@ -251,7 +251,6 @@ public class Parser {
             currentToken.token == Token.DIFERENTE )
         {
             expressaoAST.oprel = parseOpRel();
-            //acceptIt(); // já tem um accept it no parseOpRel()
             expressaoAST.expSimp2 = parseExpressaoSimples();
         }
         return expressaoAST;

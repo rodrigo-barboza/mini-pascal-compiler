@@ -85,7 +85,7 @@ public class Token extends Ast {
         "program", 
         "begin", 
         "true", 
-	"if", 
+	    "if", 
         "then",
         "else",
         "do",
