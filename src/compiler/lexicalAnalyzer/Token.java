@@ -29,7 +29,7 @@ public class Token extends Ast {
             this.spelling = spellings[token];
         }
         
-//        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);
+        System.out.println("line:"+line+" col:"+column+" token: "+this.token+" value: "+this.spelling);
     }
     
     public final static byte 

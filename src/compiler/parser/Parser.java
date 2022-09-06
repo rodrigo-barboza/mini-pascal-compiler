@@ -321,7 +321,10 @@ public class Parser {
         Token literalAST=null;
         switch (currentToken.token)
         {
-            case Token.BOOLEAN:
+            case Token.IDENTIFIER:
+                literalAST = parseId();
+                break;
+            case Token.TRUE: case Token.FALSE:
                 literalAST = parseBoolLit();
                 break;
             case Token.INTLITERAL:
